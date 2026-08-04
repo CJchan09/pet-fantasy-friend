@@ -10,6 +10,7 @@ Web 端奇幻宠物养成应用。产品文档见上级目录 `../docs/`（PRD /
 - **宠物立绘**：设计侧 PNG（`../Image/宠物png/`）经 `scripts/convertCreatures.mjs` 转成 WebP（约 5MB/张 → 23–50KB/张），输出到 `public/creatures/`。设计侧更新 PNG 后重跑该脚本即可。
 - **视觉规范**：色板/圆角/阴影取自 `../游戏网页设计构思-handoff/`（暖奶油底 + 星尘暖金强调色），布局与文案遵循 `../Image/UI稿_AI生成/_UI规格说明.md`。
 - **动画**：待机随机眨眼（睁眼/闭眼两帧姿势对齐，3.5–7 秒随机间隔）；喂养时切喜悦帧 2.2 秒；疲倦/沉睡态用真实的对应美术（不眨眼）；星光粒子闪烁 + 宠物呼吸浮动，沉睡时停止（`prefers-reduced-motion` 时全部停用）。
+- **网站图标**：设计侧交付的蛋形 Logo（`../Image/logo/`）经 `scripts/generateIcons.mjs` 裁切/生成 favicon、apple-touch-icon、PWA manifest 图标（含 maskable 变体），输出到 `public/`。源图四周留白很多，脚本按小尺寸场景（favicon 等）裁紧、按需要安全边距的场景（maskable）保留原始留白，两种都不用手动再调。Logo 更新后重跑该脚本即可。
 
 ## 技术栈
 
