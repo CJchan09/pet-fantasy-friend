@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { creatureAsset } from '@/config/creatures'
+import type { PetLifecycleStatus } from '@/domain/petLifecycle'
 
 interface PetSpriteProps {
   species: string
   /** 喂养后短暂显示喜悦帧 */
   joy: boolean
+  lifecycleStatus?: PetLifecycleStatus
   alt: string
   className?: string
 }
@@ -14,27 +16,33 @@ const BLINK_MAX_INTERVAL_MS = 7000
 const BLINK_DURATION_MS = 170
 
 /**
- * 宠物立绘：睁眼帧为默认，随机间隔眨眼（睁眼/闭眼两帧姿势对齐，直接切换）。
- * 喂养时切喜悦帧。疲倦/沉睡帧留给阶段二状态机。
+ * 宠物立绘：
+ * - active：睁眼帧为默认，随机间隔眨眼（睁眼/闭眼两帧姿势对齐，直接切换）
+ * - tired/dormant：显示对应的静态状态帧，不眨眼（PRD 3.3.3：疲倦动作变慢，沉睡蜷缩不动）
+ * - 喂养时（joy=true）优先显示喜悦帧，无论生命周期状态如何
  */
-export function PetSprite({ species, joy, alt, className }: PetSpriteProps) {
+export function PetSprite({ species, joy, lifecycleStatus = 'active', alt, className }: PetSpriteProps) {
   const [blinking, setBlinking] = useState(false)
   const timersRef = useRef<number[]>([])
 
   const eyesOpen = creatureAsset(species, 'eyes-open')
   const eyesClosed = creatureAsset(species, 'eyes-closed')
   const joyFrame = creatureAsset(species, 'joy')
+  const tiredFrame = creatureAsset(species, 'tired')
+  const dormantFrame = creatureAsset(species, 'dormant')
 
-  // 预加载闭眼与喜悦帧，避免首次切换闪空
+  const isActive = lifecycleStatus === 'active'
+
+  // 预加载其他帧，避免切换时闪空
   useEffect(() => {
-    for (const src of [eyesClosed, joyFrame]) {
+    for (const src of [eyesClosed, joyFrame, tiredFrame, dormantFrame]) {
       const img = new Image()
       img.src = src
     }
-  }, [eyesClosed, joyFrame])
+  }, [eyesClosed, joyFrame, tiredFrame, dormantFrame])
 
   useEffect(() => {
-    if (joy) {
+    if (joy || !isActive) {
       return
     }
     let cancelled = false
@@ -65,9 +73,18 @@ export function PetSprite({ species, joy, alt, className }: PetSpriteProps) {
       timersRef.current = []
       setBlinking(false)
     }
-  }, [joy])
+  }, [joy, isActive])
 
-  const src = joy ? joyFrame : blinking ? eyesClosed : eyesOpen
+  let src = eyesOpen
+  if (joy) {
+    src = joyFrame
+  } else if (lifecycleStatus === 'dormant') {
+    src = dormantFrame
+  } else if (lifecycleStatus === 'tired') {
+    src = tiredFrame
+  } else {
+    src = blinking ? eyesClosed : eyesOpen
+  }
 
   return <img src={src} alt={alt} className={className} draggable={false} />
 }

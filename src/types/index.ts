@@ -33,7 +33,32 @@ export interface StardustState {
   balance: number
 }
 
-export const CURRENT_SCHEMA_VERSION = 1
+export type CreatureRarity = 'common' | 'rare' | 'legendary'
+
+export interface TaskItem {
+  id: string
+  label: string
+  done: boolean
+  /** 是否已经发过星尘；一旦为 true 永远为 true，防止反复勾选/取消刷星尘 */
+  rewarded: boolean
+  createdAt: string
+  /** 首次发放星尘那天的本地日期（YYYY-MM-DD），用于计算「今日已完成几项」的每日上限 */
+  rewardedDate?: string
+}
+
+export interface FocusSessionRecord {
+  /** 本地设备日期，用于计算「今日第几次」 */
+  date: string
+  completedAt: string
+}
+
+export interface EggState {
+  rarity: 'common' | 'rare'
+  /** 已投入的星尘，达到该稀有度的孵化成本即孵出 */
+  progress: number
+}
+
+export const CURRENT_SCHEMA_VERSION = 2
 
 export interface AppState {
   schemaVersion: number
@@ -41,4 +66,19 @@ export interface AppState {
   stardust: StardustState
   reflections: ReflectionEntry[]
   draftReflection: ReflectionDraft | null
+  /** 首次三选一起始宠物是否已完成 */
+  hasChosenStarter: boolean
+  /** 上一次「成长行为」（反思/任务/专注）时间戳，驱动宠物状态机；喂养不算成长行为 */
+  lastGrowthAt: string | null
+  tasks: TaskItem[]
+  focusSessions: FocusSessionRecord[]
+  egg: EggState | null
+  /** species -> 是否已拥有，图鉴用 */
+  ownedCreatures: Record<string, boolean>
+  /** 累计反思次数（不受编辑影响，只在首次提交时 +1），传说解锁判定用 */
+  reflectionCount: number
+  /** 存档首次创建时间，用于「使用满 7 天提示导出备份」（PRD 3.3.7） */
+  firstUsedAt: string
+  /** 是否导出过存档；导出过就不用再提醒 */
+  hasExportedSave: boolean
 }

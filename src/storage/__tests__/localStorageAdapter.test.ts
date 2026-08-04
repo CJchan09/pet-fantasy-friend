@@ -15,9 +15,36 @@ beforeEach(() => {
 describe('localStorageAdapter', () => {
   it('没有存档时返回默认状态', () => {
     const state = loadState()
-    expect(state.schemaVersion).toBe(1)
+    expect(state.schemaVersion).toBe(2)
     expect(state.stardust.balance).toBe(0)
     expect(state.reflections).toEqual([])
+    expect(state.hasChosenStarter).toBe(false)
+    expect(state.tasks).toEqual([])
+    expect(state.egg).toBeNull()
+    // 起始三选一之前不预先拥有任何生物，避免选别的生物后默认生物仍残留在图鉴里
+    expect(state.ownedCreatures).toEqual({})
+  })
+
+  it('v1 旧存档（没有 hasChosenStarter 字段）迁移时视为已完成起始选择，不会被打回三选一页面', () => {
+    const legacyV1 = {
+      schemaVersion: 1,
+      pet: { name: '苔苔', species: 'mossbear', intimacy: 30, level: 2 },
+      stardust: { balance: 55 },
+      reflections: [],
+      draftReflection: null,
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(legacyV1))
+    const migrated = loadState()
+    expect(migrated.schemaVersion).toBe(2)
+    expect(migrated.hasChosenStarter).toBe(true)
+    expect(migrated.stardust.balance).toBe(55)
+    expect(migrated.pet.intimacy).toBe(30)
+    expect(migrated.ownedCreatures.mossbear).toBe(true)
+    expect(migrated.tasks).toEqual([])
+  })
+
+  it('全新存档（真的没玩过）hasChosenStarter 为 false', () => {
+    expect(loadState().hasChosenStarter).toBe(false)
   })
 
   it('保存后可以正确读回', () => {

@@ -2,11 +2,13 @@ import { useTranslation } from 'react-i18next'
 import type { PetState } from '@/types'
 import { CREATURES, DEFAULT_SPECIES } from '@/config/creatures'
 import { levelProgress } from '@/domain/pet'
+import type { PetLifecycleStatus } from '@/domain/petLifecycle'
 import { PetSprite } from './PetSprite'
 
 interface PetSceneProps {
   pet: PetState
   joy: boolean
+  lifecycleStatus: PetLifecycleStatus
   canFeed: boolean
   feedCost: number
   onFeed: () => void
@@ -28,32 +30,37 @@ const PARTICLES = [
 /**
  * 宠物场景区：主视觉（UI 规格：占比不低于 50%）。
  * 径向暖光背景 + 星光粒子 + 宠物立绘 + 等级条 + 喂养入口。
+ * 沉睡态：粒子停止、不做呼吸动画，召回文案基调是「它在等你」，绝不指责（PRD 3.3.3 硬性要求）。
  */
-export function PetScene({ pet, joy, canFeed, feedCost, onFeed }: PetSceneProps) {
+export function PetScene({ pet, joy, lifecycleStatus, canFeed, feedCost, onFeed }: PetSceneProps) {
   const { t } = useTranslation()
   const creature = CREATURES[pet.species] ?? CREATURES[DEFAULT_SPECIES]
   const progress = levelProgress(pet.intimacy)
+  const isDormant = lifecycleStatus === 'dormant'
+  const isTired = lifecycleStatus === 'tired'
 
   return (
     <div className="relative flex flex-1 flex-col items-center justify-end overflow-hidden rounded-[20px] shadow-soft [background:radial-gradient(120%_90%_at_50%_20%,#FBF6EA_0%,#F1E7D2_55%,#E8DCC2_100%)]">
-      {/* 星光粒子 */}
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        {PARTICLES.map((p, i) => (
-          <span
-            key={i}
-            className="animate-twinkle absolute text-gold-500"
-            style={{
-              left: p.left,
-              top: p.top,
-              fontSize: p.size,
-              opacity: p.opacity,
-              animationDelay: p.delay,
-            }}
-          >
-            ✦
-          </span>
-        ))}
-      </div>
+      {/* 星光粒子：沉睡时停止 */}
+      {!isDormant && (
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          {PARTICLES.map((p, i) => (
+            <span
+              key={i}
+              className="animate-twinkle absolute text-gold-500"
+              style={{
+                left: p.left,
+                top: p.top,
+                fontSize: p.size,
+                opacity: isTired ? p.opacity * 0.4 : p.opacity,
+                animationDelay: p.delay,
+              }}
+            >
+              ✦
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* 场景氛围标签 */}
       <div className="absolute left-5 top-4 text-xs tracking-wide text-ink-500">
@@ -61,10 +68,13 @@ export function PetScene({ pet, joy, canFeed, feedCost, onFeed }: PetSceneProps)
       </div>
 
       {/* 宠物 */}
-      <div className="animate-breathe relative mt-10 flex flex-col items-center">
+      <div
+        className={`relative mt-10 flex flex-col items-center ${isDormant ? '' : 'animate-breathe'}`}
+      >
         <PetSprite
           species={pet.species}
           joy={joy}
+          lifecycleStatus={lifecycleStatus}
           alt={pet.name}
           className="h-52 w-auto object-contain [filter:drop-shadow(0_24px_32px_rgba(90,78,55,0.18))] sm:h-64"
         />
@@ -85,6 +95,9 @@ export function PetScene({ pet, joy, canFeed, feedCost, onFeed }: PetSceneProps)
             style={{ width: `${Math.round(progress * 100)}%` }}
           />
         </div>
+        {isDormant && (
+          <p className="text-center text-xs text-ink-500">{t('home.dormantHint')}</p>
+        )}
         <button
           type="button"
           disabled={!canFeed}

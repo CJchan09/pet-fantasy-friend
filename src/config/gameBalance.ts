@@ -36,3 +36,23 @@ export const FEED_STARDUST_COST = 10
 export const FEED_INTIMACY_GAIN = 10
 export const INTIMACY_PER_LEVEL = 50
 export const MAX_LEVEL_STAGE_ONE = 5 // 阶段一只做数值/文字标签展示，不含进化动画
+
+/**
+ * 孵化系统数值（PRD 3.3.4 只定了「不同蛋消耗不同星尘」的规则，没给具体数字，这里落地决定）：
+ * 普通蛋约 1.5 天反思量，稀有蛋约 4 天反思量，体现稀有度差异。
+ * 「浇灌」按钮沿用喂养同款交互——每次花固定量推进进度条。
+ */
+export const EGG_COMMON_COST = 60
+export const EGG_RARE_COST = 150
+export const EGG_ADVANCE_CHUNK = 20
+export const EGG_SLOT_COUNT = 1
+
+/** 传说生物解锁：累计 30 次每日反思，不依赖概率（PRD 3.3.4 原文数字） */
+export const LEGENDARY_UNLOCK_REFLECTION_COUNT = 30
+
+/**
+ * 宠物状态机（PRD 3.3.3）：活跃 -[2天无成长行为]-> 疲倦 -[再3天，累计5天]-> 沉睡。
+ * 天数差计算时钳位在 >=0，防止系统时间被回拨产生负数从而绕过或提前触发状态。
+ */
+export const PET_TIRED_AFTER_DAYS = 2
+export const PET_DORMANT_AFTER_DAYS = 5

@@ -9,13 +9,27 @@
     "feedButton": "Feed",
     "feedCost": "✦ {{cost}}",
     "feedNotEnoughHint": "Not enough stardust — finish today's reflection first",
+    "dormantHint": "It's asleep — it's waiting for you to come back",
     "reflectionCta": "Daily reflection",
     "reflectionHintNotDone": "Not written yet · +40 ⭐",
     "reflectionHintDone": "Done today · tap to edit",
     "focusButton": "Focus",
+    "focusSessionsHint": "{{count}}/{{limit}} today",
     "tasksButton": "Tasks",
-    "comingSoon": "Coming soon",
-    "historyLink": "Reflection history"
+    "tasksOpenHint": "{{count}} open",
+    "historyLink": "Reflection history",
+    "dexLink": "Collection",
+    "settingsLink": "Settings",
+    "eggStartTitle": "Start hatching",
+    "eggStartCommon": "Common egg · {{cost}} ⭐",
+    "eggStartRare": "Rare egg · {{cost}} ⭐",
+    "eggLabel": {
+      "common": "Hatching · Common egg",
+      "rare": "Hatching · Rare egg"
+    },
+    "eggRemaining": "{{count}} ⭐ to go",
+    "eggAdvanceHint": "Tap to nurture · costs {{cost}} ⭐",
+    "eggAdvanceNotEnoughHint": "Not enough stardust yet — go earn some"
   },
   "reflection": {
     "questionGratitude": "What are you grateful for today?",
@@ -52,5 +66,55 @@
     "stardragon": { "species": "Star Dragonet", "scene": "Starfield · Night" },
     "mistdeer": { "species": "Mist Deer", "scene": "Misty forest · Morning" },
     "streamturtle": { "species": "Stream Turtle", "scene": "Creekside · Afternoon" }
+  },
+  "starter": {
+    "title": "Pick a friend to grow with",
+    "subtitle": "You can name it once you've chosen",
+    "nameLabel": "Give it a name",
+    "confirmButton": "This one"
+  },
+  "focus": {
+    "startButton": "Start focus",
+    "cancelButton": "End this session",
+    "idleHint": "Focus {{minutes}} minutes · +{{reward}} ⭐",
+    "runningHint": "Focusing · {{name}} is with you",
+    "sessionsTodayHint": "{{count}}/{{limit}} completed today",
+    "dailyLimitReachedHint": "You've used up today's focus sessions",
+    "completedTitle": "Focus session complete",
+    "completedHint": "Earned {{reward}} ⭐",
+    "backButton": "Back"
+  },
+  "tasks": {
+    "title": "My tasks",
+    "backButton": "Back",
+    "rewardHint": "{{count}}/{{limit}} stardust-eligible today",
+    "dailyLimitReachedHint": "Today's stardust cap is reached — tasks still get checked off",
+    "emptyHint": "No tasks yet — add one",
+    "addPlaceholder": "Something you'd like to do",
+    "addButton": "Add",
+    "deleteButton": "Delete"
+  },
+  "dex": {
+    "title": "Collection",
+    "backButton": "Back",
+    "unknown": "???",
+    "rarity": {
+      "common": "Common",
+      "rare": "Rare",
+      "legendary": "Legendary"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "backButton": "Back",
+    "exportReminder": "You've been playing a while — consider exporting a backup",
+    "sizeWarning": "Save data is {{size}} KB — consider exporting or clearing old entries",
+    "backupTitle": "Backup",
+    "backupHint": "All data lives only on this device — exporting is the only backup",
+    "exportButton": "Export save",
+    "importButton": "Import save",
+    "importSuccess": "Import successful",
+    "importError": "Invalid file — import failed",
+    "languageLabel": "Language / 语言"
   }
 }

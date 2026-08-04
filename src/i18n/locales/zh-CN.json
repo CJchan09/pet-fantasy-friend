@@ -9,13 +9,27 @@
     "feedButton": "喂养",
     "feedCost": "✦ {{cost}}",
     "feedNotEnoughHint": "星尘不够，先完成今天的反思吧",
+    "dormantHint": "它睡着了，它在等你回来",
     "reflectionCta": "今日反思",
     "reflectionHintNotDone": "今天还没写 · +40 ⭐",
     "reflectionHintDone": "今天已写 · 点开可编辑",
     "focusButton": "专注",
+    "focusSessionsHint": "今日 {{count}}/{{limit}} 次",
     "tasksButton": "任务",
-    "comingSoon": "即将开放",
-    "historyLink": "反思记录"
+    "tasksOpenHint": "{{count}} 项待完成",
+    "historyLink": "反思记录",
+    "dexLink": "图鉴",
+    "settingsLink": "设置",
+    "eggStartTitle": "开始孵化",
+    "eggStartCommon": "普通蛋 · {{cost}} ⭐",
+    "eggStartRare": "稀有蛋 · {{cost}} ⭐",
+    "eggLabel": {
+      "common": "孵化中 · 普通蛋",
+      "rare": "孵化中 · 稀有蛋"
+    },
+    "eggRemaining": "还差 {{count}} ⭐",
+    "eggAdvanceHint": "轻点浇灌 · 花费 {{cost}} ⭐",
+    "eggAdvanceNotEnoughHint": "星尘不够，先去赚一点吧"
   },
   "reflection": {
     "questionGratitude": "今天有什么值得感恩的事？",
@@ -52,5 +66,55 @@
     "stardragon": { "species": "星岚幼龙", "scene": "星空 · 夜" },
     "mistdeer": { "species": "雾角鹿", "scene": "雾林 · 清晨" },
     "streamturtle": { "species": "溪石龟", "scene": "溪畔 · 午后" }
+  },
+  "starter": {
+    "title": "选一只陪你成长的伙伴",
+    "subtitle": "选好之后可以给它取个名字",
+    "nameLabel": "给它取个名字",
+    "confirmButton": "就是它了"
+  },
+  "focus": {
+    "startButton": "开始专注",
+    "cancelButton": "结束本次",
+    "idleHint": "专注 {{minutes}} 分钟 · +{{reward}} ⭐",
+    "runningHint": "专注中 · {{name}}在你身边",
+    "sessionsTodayHint": "今日已完成 {{count}}/{{limit}} 次",
+    "dailyLimitReachedHint": "今天的专注次数已经用完了",
+    "completedTitle": "完成一次专注",
+    "completedHint": "获得 {{reward}} ⭐",
+    "backButton": "返回"
+  },
+  "tasks": {
+    "title": "我的任务",
+    "backButton": "返回",
+    "rewardHint": "今日已发放 {{count}}/{{limit}} 项星尘",
+    "dailyLimitReachedHint": "今日星尘上限已达，完成任务仍会记录",
+    "emptyHint": "还没有任务，添加一个吧",
+    "addPlaceholder": "写一件想完成的事",
+    "addButton": "添加",
+    "deleteButton": "删除"
+  },
+  "dex": {
+    "title": "图鉴",
+    "backButton": "返回",
+    "unknown": "？？？",
+    "rarity": {
+      "common": "普通",
+      "rare": "稀有",
+      "legendary": "传说"
+    }
+  },
+  "settings": {
+    "title": "设置",
+    "backButton": "返回",
+    "exportReminder": "已经用了一段时间了，建议导出一份存档备份",
+    "sizeWarning": "存档已有 {{size}} KB，建议导出备份或清理历史记录",
+    "backupTitle": "存档备份",
+    "backupHint": "所有数据只存在这台设备上，导出是唯一的备份方式",
+    "exportButton": "导出存档",
+    "importButton": "导入存档",
+    "importSuccess": "导入成功",
+    "importError": "文件格式不对，导入失败",
+    "languageLabel": "语言 / Language"
   }
 }

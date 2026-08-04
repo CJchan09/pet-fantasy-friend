@@ -14,7 +14,21 @@ import {
 } from '@/domain/reflection'
 import { earnStardust } from '@/domain/stardust'
 import { feedPet as feedPetDomain } from '@/domain/pet'
-import { FEED_STARDUST_COST } from '@/config/gameBalance'
+import {
+  completeTask as completeTaskDomain,
+  createTask,
+  removeTask as removeTaskDomain,
+  uncompleteTask,
+} from '@/domain/tasks'
+import { completeFocusSession as completeFocusSessionDomain } from '@/domain/focus'
+import {
+  advanceEgg as advanceEggDomain,
+  checkLegendaryUnlock,
+  isDuplicateHatch,
+  startNewEgg as startNewEggDomain,
+} from '@/domain/incubation'
+import { FEED_STARDUST_COST, EGG_ADVANCE_CHUNK, EGG_COMMON_COST, EGG_RARE_COST } from '@/config/gameBalance'
+import { CREATURES } from '@/config/creatures'
 
 interface GameStore {
   state: AppState
@@ -24,13 +38,25 @@ interface GameStore {
   saveDraft: (answers: ReflectionAnswers, mood?: MoodValue) => void
   submitReflection: (answers: ReflectionAnswers, mood?: MoodValue) => void
   feedPet: () => boolean
+  chooseStarter: (species: string, name: string) => void
+  addTask: (label: string) => void
+  removeTask: (id: string) => void
+  toggleTask: (id: string) => void
+  completeFocusSession: () => boolean
+  advanceEgg: () => boolean
+  startNewEgg: (rarity: 'common' | 'rare') => boolean
   exportSave: () => string
   importSave: (json: string) => boolean
   resetForTests: () => void
 }
 
+/** 三处赚星尘的入口共用：更新 lastGrowthAt，驱动宠物状态机恢复活跃（喂养/孵蛋不算成长行为） */
+function withGrowthTimestamp(state: AppState, didEarn: boolean): Pick<AppState, 'lastGrowthAt'> {
+  return { lastGrowthAt: didEarn ? new Date().toISOString() : state.lastGrowthAt }
+}
+
 /**
- * 单一持久化 store：全部 AppState（宠物/星尘/反思）作为一个整体读写 localStorage，
+ * 单一持久化 store：全部 AppState（宠物/星尘/反思/任务/专注/孵化/图鉴）作为一个整体读写 localStorage，
  * 避免多个各自持久化的 store 互相覆盖同一个存档 key。
  * 下方 usePetStore / useStardustStore / useReflectionStore 是从这里派生的按域选择器，
  * 供组件按需订阅，不必每个组件都拿完整 state。
@@ -73,11 +99,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       let reflections = prev.state.reflections
       let stardustBalance = prev.state.stardust.balance
+      let reflectionCount = prev.state.reflectionCount
+      let ownedCreatures = prev.state.ownedCreatures
 
       if (isFirstSubmissionToday) {
         // 首次提交：按填写题数发放星尘
         const reward = calculateReflectionReward(answers)
         stardustBalance = earnStardust(stardustBalance, reward)
+        reflectionCount += 1
         reflections = [
           ...reflections,
           {
@@ -88,6 +117,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
             updatedAt: new Date().toISOString(),
           },
         ].sort((a, b) => (a.date < b.date ? 1 : -1))
+
+        const legendarySpecies = checkLegendaryUnlock(reflectionCount, ownedCreatures)
+        if (legendarySpecies) {
+          ownedCreatures = { ...ownedCreatures, [legendarySpecies]: true }
+        }
       } else {
         // 同日重复提交=编辑：只更新内容，不重复发放星尘（PRD 3.3.1 异常处理）
         reflections = reflections.map((entry, index) =>
@@ -107,6 +141,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
         stardust: { balance: stardustBalance },
         reflections,
         draftReflection: null,
+        reflectionCount,
+        ownedCreatures,
+        ...withGrowthTimestamp(prev.state, isFirstSubmissionToday),
       }
       saveState(nextState)
       return { state: nextState }
@@ -135,7 +172,150 @@ export const useGameStore = create<GameStore>((set, get) => ({
     return true
   },
 
-  exportSave: () => exportStateAsJson(get().state),
+  chooseStarter: (species, name) => {
+    set((prev) => {
+      const nextState: AppState = {
+        ...prev.state,
+        pet: { name: name.trim() || CREATURES[species].defaultName, species, intimacy: 0, level: 1 },
+        hasChosenStarter: true,
+        ownedCreatures: { ...prev.state.ownedCreatures, [species]: true },
+      }
+      saveState(nextState)
+      return { state: nextState }
+    })
+  },
+
+  addTask: (label) => {
+    if (!label.trim()) {
+      return
+    }
+    set((prev) => {
+      const nextState: AppState = {
+        ...prev.state,
+        tasks: [...prev.state.tasks, createTask(label)],
+      }
+      saveState(nextState)
+      return { state: nextState }
+    })
+  },
+
+  removeTask: (id) => {
+    set((prev) => {
+      const nextState: AppState = {
+        ...prev.state,
+        tasks: removeTaskDomain(prev.state.tasks, id),
+      }
+      saveState(nextState)
+      return { state: nextState }
+    })
+  },
+
+  toggleTask: (id) => {
+    set((prev) => {
+      const target = prev.state.tasks.find((t) => t.id === id)
+      if (!target) {
+        return prev
+      }
+
+      if (target.done) {
+        const nextState: AppState = { ...prev.state, tasks: uncompleteTask(prev.state.tasks, id) }
+        saveState(nextState)
+        return { state: nextState }
+      }
+
+      const { tasks, stardustEarned } = completeTaskDomain(prev.state.tasks, id)
+      const nextState: AppState = {
+        ...prev.state,
+        tasks,
+        stardust: { balance: earnStardust(prev.state.stardust.balance, stardustEarned) },
+        ...withGrowthTimestamp(prev.state, stardustEarned > 0),
+      }
+      saveState(nextState)
+      return { state: nextState }
+    })
+  },
+
+  completeFocusSession: () => {
+    const { state } = get()
+    const { sessions, stardustEarned } = completeFocusSessionDomain(state.focusSessions)
+    if (stardustEarned === 0) {
+      return false
+    }
+    set((prev) => {
+      const nextState: AppState = {
+        ...prev.state,
+        focusSessions: sessions,
+        stardust: { balance: earnStardust(prev.state.stardust.balance, stardustEarned) },
+        ...withGrowthTimestamp(prev.state, true),
+      }
+      saveState(nextState)
+      return { state: nextState }
+    })
+    return true
+  },
+
+  advanceEgg: () => {
+    const { state } = get()
+    if (!state.egg) {
+      return false
+    }
+    const result = advanceEggDomain(state.egg, state.stardust.balance, state.ownedCreatures)
+    if (!result) {
+      return false
+    }
+    set((prev) => {
+      let ownedCreatures = prev.state.ownedCreatures
+      let stardustBalance = result.stardustBalance
+
+      if (result.hatchedSpecies) {
+        const duplicate = isDuplicateHatch(result.hatchedSpecies, prev.state.ownedCreatures)
+        ownedCreatures = { ...ownedCreatures, [result.hatchedSpecies]: true }
+        if (duplicate) {
+          // 同稀有度已经全部拥有时的重复孵化：返还一半蛋成本作为安慰，而不是做不出意义的「加亲密度」
+          const refund = Math.round(
+            (prev.state.egg!.rarity === 'common' ? EGG_COMMON_COST : EGG_RARE_COST) / 2,
+          )
+          stardustBalance = earnStardust(stardustBalance, refund)
+        }
+      }
+
+      const nextState: AppState = {
+        ...prev.state,
+        egg: result.egg,
+        stardust: { balance: stardustBalance },
+        ownedCreatures,
+      }
+      saveState(nextState)
+      return { state: nextState }
+    })
+    return true
+  },
+
+  startNewEgg: (rarity) => {
+    const { state } = get()
+    if (state.egg) {
+      return false
+    }
+    set((prev) => {
+      const nextState: AppState = { ...prev.state, egg: startNewEggDomain(rarity) }
+      saveState(nextState)
+      return { state: nextState }
+    })
+    return true
+  },
+
+  exportSave: () => {
+    const json = exportStateAsJson(get().state)
+    set((prev) => {
+      if (prev.state.hasExportedSave) {
+        return prev
+      }
+      const nextState: AppState = { ...prev.state, hasExportedSave: true }
+      saveState(nextState)
+      return { state: nextState }
+    })
+    return json
+  },
 
   importSave: (json) => {
     const imported = importStateFromJson(json)
@@ -155,3 +335,4 @@ export const useGameStore = create<GameStore>((set, get) => ({
 }))
 
 export const FEED_COST = FEED_STARDUST_COST
+export const EGG_ADVANCE_COST = EGG_ADVANCE_CHUNK

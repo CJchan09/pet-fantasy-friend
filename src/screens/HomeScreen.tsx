@@ -3,26 +3,42 @@ import { useTranslation } from 'react-i18next'
 import { PetScene } from '@/components/pet/PetScene'
 import { StardustBadge } from '@/components/stardust/StardustBadge'
 import { LanguageToggle } from '@/components/LanguageToggle'
+import { EggCard } from '@/components/incubation/EggCard'
 import { usePetStore } from '@/store/usePetStore'
 import { useStardustStore } from '@/store/useStardustStore'
 import { useReflectionStore } from '@/store/useReflectionStore'
+import { useFocusStore } from '@/store/useFocusStore'
+import { useTaskStore } from '@/store/useTaskStore'
 
 interface HomeScreenProps {
   onOpenReflection: () => void
   onOpenHistory: () => void
+  onOpenFocus: () => void
+  onOpenTasks: () => void
+  onOpenDex: () => void
+  onOpenSettings: () => void
 }
 
 const JOY_DURATION_MS = 2200
 
 /**
  * 主界面。视觉权重（UI 规格说明）：
- * 宠物场景 ≥50% 主视觉；每日反思是最大的行动卡片；专注/任务为阶段二占位，权重明显更低。
+ * 宠物场景 ≥50% 主视觉；每日反思是最大的行动卡片；专注/任务次之，不做成等大三按钮。
  */
-export function HomeScreen({ onOpenReflection, onOpenHistory }: HomeScreenProps) {
+export function HomeScreen({
+  onOpenReflection,
+  onOpenHistory,
+  onOpenFocus,
+  onOpenTasks,
+  onOpenDex,
+  onOpenSettings,
+}: HomeScreenProps) {
   const { t } = useTranslation()
-  const { pet, canFeed, feedCost, feedPet } = usePetStore()
+  const { pet, lifecycleStatus, canFeed, feedCost, feedPet } = usePetStore()
   const { balance } = useStardustStore()
   const { hasSubmittedToday } = useReflectionStore()
+  const { sessionsToday, dailyLimit: focusDailyLimit } = useFocusStore()
+  const { tasks } = useTaskStore()
 
   const [joy, setJoy] = useState(false)
   const joyTimerRef = useRef<number | undefined>(undefined)
@@ -36,6 +52,8 @@ export function HomeScreen({ onOpenReflection, onOpenHistory }: HomeScreenProps)
     }
   }
 
+  const openTaskCount = tasks.filter((t) => !t.done).length
+
   return (
     <div className="mx-auto flex min-h-full w-full max-w-md flex-col gap-4 px-4 pb-6 pt-4 lg:max-w-5xl">
       {/* 顶栏 */}
@@ -47,7 +65,25 @@ export function HomeScreen({ onOpenReflection, onOpenHistory }: HomeScreenProps)
           </span>
         </div>
         <StardustBadge balance={balance} />
-        <LanguageToggle />
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onOpenDex}
+            aria-label={t('home.dexLink')}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-chip text-sm text-ink-600"
+          >
+            📖
+          </button>
+          <button
+            type="button"
+            onClick={onOpenSettings}
+            aria-label={t('home.settingsLink')}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-chip text-sm text-ink-600"
+          >
+            ⚙
+          </button>
+          <LanguageToggle />
+        </div>
       </header>
 
       {/* 主体：手机单列，桌面双栏 */}
@@ -57,6 +93,7 @@ export function HomeScreen({ onOpenReflection, onOpenHistory }: HomeScreenProps)
           <PetScene
             pet={pet}
             joy={joy}
+            lifecycleStatus={lifecycleStatus}
             canFeed={canFeed}
             feedCost={feedCost}
             onFeed={handleFeed}
@@ -91,11 +128,31 @@ export function HomeScreen({ onOpenReflection, onOpenHistory }: HomeScreenProps)
             </span>
           </button>
 
-          {/* 专注 / 任务 —— 阶段二占位，权重更低 */}
+          {/* 专注 / 任务 —— 次要入口，权重明显低于反思 */}
           <div className="flex gap-3">
-            <PlaceholderCard label={t('home.focusButton')} hint={t('home.comingSoon')} />
-            <PlaceholderCard label={t('home.tasksButton')} hint={t('home.comingSoon')} />
+            <button
+              type="button"
+              onClick={onOpenFocus}
+              className="flex flex-1 flex-col items-center gap-0.5 rounded-2xl bg-card/80 px-4 py-3 shadow-soft"
+            >
+              <span className="text-sm font-medium text-ink-700">{t('home.focusButton')}</span>
+              <span className="text-[10px] text-ink-400">
+                {t('home.focusSessionsHint', { count: sessionsToday, limit: focusDailyLimit })}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={onOpenTasks}
+              className="flex flex-1 flex-col items-center gap-0.5 rounded-2xl bg-card/80 px-4 py-3 shadow-soft"
+            >
+              <span className="text-sm font-medium text-ink-700">{t('home.tasksButton')}</span>
+              <span className="text-[10px] text-ink-400">
+                {t('home.tasksOpenHint', { count: openTaskCount })}
+              </span>
+            </button>
           </div>
+
+          <EggCard />
 
           <button
             type="button"
@@ -106,15 +163,6 @@ export function HomeScreen({ onOpenReflection, onOpenHistory }: HomeScreenProps)
           </button>
         </div>
       </div>
-    </div>
-  )
-}
-
-function PlaceholderCard({ label, hint }: { label: string; hint: string }) {
-  return (
-    <div className="flex flex-1 flex-col items-center gap-0.5 rounded-2xl bg-card/60 px-4 py-3 shadow-soft opacity-60">
-      <span className="text-sm font-medium text-ink-600">{label}</span>
-      <span className="rounded-lg bg-chip px-2 py-0.5 text-[10px] text-ink-500">{hint}</span>
     </div>
   )
 }
