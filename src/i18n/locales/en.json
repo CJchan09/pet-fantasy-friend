@@ -1,0 +1,56 @@
+{
+  "app": {
+    "title": "Pet Fantasy Friend",
+    "subtitle": "GROW TOGETHER"
+  },
+  "home": {
+    "stardustLabel": "Stardust",
+    "levelLabel": "Lv.{{level}} · Bond",
+    "feedButton": "Feed",
+    "feedCost": "✦ {{cost}}",
+    "feedNotEnoughHint": "Not enough stardust — finish today's reflection first",
+    "reflectionCta": "Daily reflection",
+    "reflectionHintNotDone": "Not written yet · +40 ⭐",
+    "reflectionHintDone": "Done today · tap to edit",
+    "focusButton": "Focus",
+    "tasksButton": "Tasks",
+    "comingSoon": "Coming soon",
+    "historyLink": "Reflection history"
+  },
+  "reflection": {
+    "questionGratitude": "What are you grateful for today?",
+    "questionLearning": "What did you learn today?",
+    "questionImprovement": "One thing you'd like to improve tomorrow?",
+    "answerPlaceholder": "A line or two is enough…",
+    "moodLabel": "Today's mood (optional)",
+    "rewardHintIdle": "Complete for 40 ⭐",
+    "rewardHintPartial": "{{filled}} answered · earns {{stars}} ⭐",
+    "rewardHintFull": "All done · earns 40 ⭐",
+    "alreadySubmittedHint": "Already saved today — edits won't grant more stardust",
+    "submitButton": "Save today",
+    "updateButton": "Save changes",
+    "backButton": "Back",
+    "draftHint": "Your draft saves automatically"
+  },
+  "history": {
+    "title": "Reflection history",
+    "emptyHint": "No entries yet — write your first one",
+    "stardustAwardedLabel": "✦ {{count}}",
+    "backButton": "Back"
+  },
+  "mood": {
+    "1": "Low",
+    "2": "Meh",
+    "3": "Calm",
+    "4": "Good",
+    "5": "Great"
+  },
+  "creature": {
+    "mossbear": { "species": "Forest Cub", "scene": "Mossy tundra · Dusk" },
+    "spiritfox": { "species": "Spirit Fox", "scene": "Woodland · Dawn" },
+    "cloudsheep": { "species": "Cloud Sheep", "scene": "Cloud plains · Afternoon" },
+    "stardragon": { "species": "Star Dragonet", "scene": "Starfield · Night" },
+    "mistdeer": { "species": "Mist Deer", "scene": "Misty forest · Morning" },
+    "streamturtle": { "species": "Stream Turtle", "scene": "Creekside · Afternoon" }
+  }
+}

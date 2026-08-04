@@ -1,0 +1,84 @@
+@import 'tailwindcss';
+
+/*
+ * 设计系统 —— 色值取自 游戏网页设计构思-handoff/产品界面 A.dc.html
+ * 暖奶油底 + 暖灰阶层次，低饱和；强调色（星尘暖金）全站同时出现不超过 2 处。
+ */
+@theme {
+  --color-cream-50: #fbf6ea;
+  --color-cream-100: #f8f3e9;
+  --color-cream-200: #f4eddf;
+  --color-cream-300: #efe9dc;
+  --color-cream-400: #e8dcc2;
+  --color-card: #fffdf8;
+  --color-ink-900: #443e33;
+  --color-ink-700: #5c5546;
+  --color-ink-600: #6e6553;
+  --color-ink-500: #8b8272;
+  --color-ink-400: #b0a793;
+  --color-gold-500: #c9a24b;
+  --color-gold-600: #bb9440;
+  --color-gold-700: #a07c33;
+  --color-line: #ded5c0;
+  --color-chip: #e4dcc9;
+
+  --font-display: 'Noto Serif SC', 'Songti SC', Georgia, 'Times New Roman', serif;
+
+  --shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.06);
+
+  --animate-twinkle: twinkle 3.6s ease-in-out infinite;
+  --animate-breathe: breathe 5s ease-in-out infinite;
+
+  @keyframes twinkle {
+    0%,
+    100% {
+      opacity: 0.25;
+    }
+    50% {
+      opacity: 0.9;
+    }
+  }
+
+  @keyframes breathe {
+    0%,
+    100% {
+      transform: translateY(0) scale(1);
+    }
+    50% {
+      transform: translateY(-4px) scale(1.008);
+    }
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-cream-300);
+  color: var(--color-ink-900);
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    'PingFang SC',
+    'Microsoft YaHei',
+    Roboto,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-twinkle,
+  .animate-breathe {
+    animation: none;
+  }
+}

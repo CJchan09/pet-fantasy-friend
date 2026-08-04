@@ -1,0 +1,56 @@
+{
+  "app": {
+    "title": "幻宠伙伴",
+    "subtitle": "PET FANTASY FRIEND"
+  },
+  "home": {
+    "stardustLabel": "星尘余额",
+    "levelLabel": "Lv.{{level}} · 亲密度",
+    "feedButton": "喂养",
+    "feedCost": "✦ {{cost}}",
+    "feedNotEnoughHint": "星尘不够，先完成今天的反思吧",
+    "reflectionCta": "今日反思",
+    "reflectionHintNotDone": "今天还没写 · +40 ⭐",
+    "reflectionHintDone": "今天已写 · 点开可编辑",
+    "focusButton": "专注",
+    "tasksButton": "任务",
+    "comingSoon": "即将开放",
+    "historyLink": "反思记录"
+  },
+  "reflection": {
+    "questionGratitude": "今天有什么值得感恩的事？",
+    "questionLearning": "今天学到了什么？",
+    "questionImprovement": "明天想改进的一件事是什么？",
+    "answerPlaceholder": "写下一两句就好……",
+    "moodLabel": "今天的心情（可跳过）",
+    "rewardHintIdle": "完成可获得 40 ⭐",
+    "rewardHintPartial": "已填 {{filled}} 题 · 可获得 {{stars}} ⭐",
+    "rewardHintFull": "全部填好 · 可获得 40 ⭐",
+    "alreadySubmittedHint": "今天已经记过，修改内容不会再发星尘",
+    "submitButton": "记下今天",
+    "updateButton": "保存修改",
+    "backButton": "返回",
+    "draftHint": "内容会自动保存"
+  },
+  "history": {
+    "title": "反思记录",
+    "emptyHint": "还没有记录，写下第一篇吧",
+    "stardustAwardedLabel": "✦ {{count}}",
+    "backButton": "返回"
+  },
+  "mood": {
+    "1": "低落",
+    "2": "一般",
+    "3": "平静",
+    "4": "不错",
+    "5": "很好"
+  },
+  "creature": {
+    "mossbear": { "species": "森之幼熊", "scene": "苔原 · 黄昏" },
+    "spiritfox": { "species": "灵狐", "scene": "林间 · 晨光" },
+    "cloudsheep": { "species": "云绒羊", "scene": "云原 · 午后" },
+    "stardragon": { "species": "星岚幼龙", "scene": "星空 · 夜" },
+    "mistdeer": { "species": "雾角鹿", "scene": "雾林 · 清晨" },
+    "streamturtle": { "species": "溪石龟", "scene": "溪畔 · 午后" }
+  }
+}
