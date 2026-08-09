@@ -7,8 +7,6 @@ interface AnimalChessScreenProps {
   onBack: () => void
 }
 
-const GAME_URL = `${import.meta.env.BASE_URL}games/dou-shou-qi/index.html`
-
 interface GameOverMessage {
   source: 'dou-shou-qi'
   type: 'gameOver'
@@ -31,10 +29,14 @@ function isGameOverMessage(data: unknown): data is GameOverMessage {
  * 这条硬性原则的关系），也不算成长行为、不会唤醒沉睡的宠物。
  */
 export function AnimalChessScreen({ onBack }: AnimalChessScreenProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const recordAnimalChessResult = useGameStore((s) => s.recordAnimalChessResult)
   const [banner, setBanner] = useState<'rewarded' | 'won-no-reward' | null>(null)
   const bannerTimerRef = useRef<number | undefined>(undefined)
+
+  // 游戏内部文案跟着 App 当前语言走（见 scripts/convertAnimalChessAssets.mjs 接入的 i18n）
+  const gameLang = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'zh-CN'
+  const gameUrl = `${import.meta.env.BASE_URL}games/dou-shou-qi/index.html?lang=${gameLang}`
 
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
@@ -88,7 +90,8 @@ export function AnimalChessScreen({ onBack }: AnimalChessScreenProps) {
       )}
 
       <iframe
-        src={GAME_URL}
+        key={gameLang}
+        src={gameUrl}
         title={t('animalChess.title')}
         className="w-full flex-1 border-0"
       />

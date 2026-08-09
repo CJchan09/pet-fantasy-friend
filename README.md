@@ -12,7 +12,7 @@ Web 端奇幻宠物养成应用。产品文档见上级目录 `../docs/`（PRD /
 - **动画**：待机随机眨眼（睁眼/闭眼两帧姿势对齐，3.5–7 秒随机间隔）；喂养时切喜悦帧 2.2 秒；疲倦/沉睡态用真实的对应美术（不眨眼）；星光粒子闪烁 + 宠物呼吸浮动，沉睡时停止（`prefers-reduced-motion` 时全部停用）。
 - **网站图标**：设计侧交付的蛋形 Logo（`../Image/logo/`）经 `scripts/generateIcons.mjs` 裁切/生成 favicon、apple-touch-icon、PWA manifest 图标（含 maskable 变体），输出到 `public/`。源图四周留白很多，脚本按小尺寸场景（favicon 等）裁紧、按需要安全边距的场景（maskable）保留原始留白，两种都不用手动再调。Logo 更新后重跑该脚本即可。
 
-**小游戏——斗兽棋**：CJ 自己做的独立 HTML5 小游戏（`../dou-shou-qi/`，支持人机对战 + 本地双人对战），经 `scripts/convertAnimalChessAssets.mjs` 转 WebP（13MB → 352KB，顺便去掉了代码里未引用的全身图美术）后嵌入 `public/games/dou-shou-qi/`，主界面加一个入口按钮，用 `<iframe>` 打开。赢一局给 10 ⭐（每日最多 2 次），输了不扣分；游戏结束时通过 `postMessage` 把结果报给外层 React 页面，由外层决定要不要发星尘——游戏本身不需要知道任何星尘逻辑。
+**小游戏——斗兽棋**：CJ 自己做的独立 HTML5 小游戏（`../dou-shou-qi/`，支持人机对战 + 本地双人对战），经 `scripts/convertAnimalChessAssets.mjs` 转 WebP（13MB → 352KB，顺便去掉了代码里未引用的全身图美术）后嵌入 `public/games/dou-shou-qi/`，主界面加一个入口按钮，用 `<iframe>` 打开。赢一局给 10 ⭐（每日最多 2 次），输了不扣分；游戏结束时通过 `postMessage` 把结果报给外层 React 页面，由外层决定要不要发星尘——游戏本身不需要知道任何星尘逻辑。游戏原本文案全是中文硬编码，同一个转换脚本又给它接了一套独立的中英 i18n（跟 App 那套 react-i18next 各自独立，不共用同一份文案文件），`AnimalChessScreen.tsx` 用当前 App 语言拼 `?lang=en` / `?lang=zh-CN` 传给 iframe，两边语言联动。
 
 ⚠️ **产品原则提醒**：PRD 1.3 写明「星尘只能靠真实的成长行为赚取」，这条奖励技术上突破了这条硬性原则，是 CJ 明确要求加的。为了不让它变成新的主要刷币入口：数值压得很低（10⭐，远低于反思的 40⭐）、每日上限 2 次、不计入 `gameBalance.ts` 里 PRIMARY/SECONDARY 的平衡红线对比、也不算「成长行为」（不会唤醒沉睡的宠物）。如果不想要这个例外，回退方式很简单：删掉 `useGameStore.ts` 里 `recordAnimalChessResult` 对 `stardust` 的那行赋值即可，游戏本身完全不受影响。
 
