@@ -30,6 +30,7 @@ export function createDefaultState(): AppState {
     reflectionCount: 0,
     firstUsedAt: new Date().toISOString(),
     hasExportedSave: false,
+    animalChessWins: [],
   }
 }
 
@@ -38,6 +39,7 @@ export function createDefaultState(): AppState {
  * v1 -> v2：新增 hasChosenStarter/lastGrowthAt/tasks/focusSessions/egg/ownedCreatures/reflectionCount。
  * v1 存档已经有一只在养的宠物（旧版没有三选一流程，直接给苔熊），迁移时视为「已完成起始选择」，
  * 否则线上现有玩家刷新会突然被打回三选一页面。
+ * v2 -> v3：新增 animalChessWins（斗兽棋赢局记账），旧存档没有则回退空数组。
  */
 function migrate(raw: unknown): AppState {
   const state = raw as Partial<AppState> & { pet?: Partial<AppState['pet']> }
@@ -60,6 +62,7 @@ function migrate(raw: unknown): AppState {
     stardust: { ...defaults.stardust, ...state.stardust },
     tasks: state.tasks ?? defaults.tasks,
     focusSessions: state.focusSessions ?? defaults.focusSessions,
+    animalChessWins: state.animalChessWins ?? defaults.animalChessWins,
     ownedCreatures:
       state.ownedCreatures && Object.keys(state.ownedCreatures).length > 0
         ? state.ownedCreatures

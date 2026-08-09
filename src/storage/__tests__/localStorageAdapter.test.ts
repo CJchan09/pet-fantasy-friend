@@ -15,12 +15,13 @@ beforeEach(() => {
 describe('localStorageAdapter', () => {
   it('没有存档时返回默认状态', () => {
     const state = loadState()
-    expect(state.schemaVersion).toBe(2)
+    expect(state.schemaVersion).toBe(3)
     expect(state.stardust.balance).toBe(0)
     expect(state.reflections).toEqual([])
     expect(state.hasChosenStarter).toBe(false)
     expect(state.tasks).toEqual([])
     expect(state.egg).toBeNull()
+    expect(state.animalChessWins).toEqual([])
     // 起始三选一之前不预先拥有任何生物，避免选别的生物后默认生物仍残留在图鉴里
     expect(state.ownedCreatures).toEqual({})
   })
@@ -35,12 +36,13 @@ describe('localStorageAdapter', () => {
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(legacyV1))
     const migrated = loadState()
-    expect(migrated.schemaVersion).toBe(2)
+    expect(migrated.schemaVersion).toBe(3)
     expect(migrated.hasChosenStarter).toBe(true)
     expect(migrated.stardust.balance).toBe(55)
     expect(migrated.pet.intimacy).toBe(30)
     expect(migrated.ownedCreatures.mossbear).toBe(true)
     expect(migrated.tasks).toEqual([])
+    expect(migrated.animalChessWins).toEqual([])
   })
 
   it('全新存档（真的没玩过）hasChosenStarter 为 false', () => {

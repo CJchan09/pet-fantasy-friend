@@ -58,7 +58,7 @@ export interface EggState {
   progress: number
 }
 
-export const CURRENT_SCHEMA_VERSION = 2
+export const CURRENT_SCHEMA_VERSION = 3
 
 export interface AppState {
   schemaVersion: number
@@ -68,7 +68,7 @@ export interface AppState {
   draftReflection: ReflectionDraft | null
   /** 首次三选一起始宠物是否已完成 */
   hasChosenStarter: boolean
-  /** 上一次「成长行为」（反思/任务/专注）时间戳，驱动宠物状态机；喂养不算成长行为 */
+  /** 上一次「成长行为」（反思/任务/专注）时间戳，驱动宠物状态机；喂养、小游戏都不算成长行为 */
   lastGrowthAt: string | null
   tasks: TaskItem[]
   focusSessions: FocusSessionRecord[]
@@ -81,4 +81,6 @@ export interface AppState {
   firstUsedAt: string
   /** 是否导出过存档；导出过就不用再提醒 */
   hasExportedSave: boolean
+  /** 斗兽棋赢局记录（只记赢，输不扣分也不用记），用于每日奖励上限 */
+  animalChessWins: FocusSessionRecord[]
 }

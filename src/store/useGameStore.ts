@@ -27,6 +27,11 @@ import {
   isDuplicateHatch,
   startNewEgg as startNewEggDomain,
 } from '@/domain/incubation'
+import {
+  isHumanWin,
+  recordAnimalChessWin,
+  type AnimalChessResult,
+} from '@/domain/animalChess'
 import { FEED_STARDUST_COST, EGG_ADVANCE_CHUNK, EGG_COMMON_COST, EGG_RARE_COST } from '@/config/gameBalance'
 import { CREATURES } from '@/config/creatures'
 
@@ -45,6 +50,8 @@ interface GameStore {
   completeFocusSession: () => boolean
   advanceEgg: () => boolean
   startNewEgg: (rarity: 'common' | 'rare') => boolean
+  /** 返回是否实际发了星尘（输了 / 今日奖励已领完时是 false，但输不扣分，state 不变） */
+  recordAnimalChessResult: (result: AnimalChessResult) => boolean
   exportSave: () => string
   importSave: (json: string) => boolean
   resetForTests: () => void
@@ -298,6 +305,28 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
     set((prev) => {
       const nextState: AppState = { ...prev.state, egg: startNewEggDomain(rarity) }
+      saveState(nextState)
+      return { state: nextState }
+    })
+    return true
+  },
+
+  recordAnimalChessResult: (result) => {
+    if (!isHumanWin(result)) {
+      return false // 输了不扣分，也没有别的副作用——直接不做任何事
+    }
+    const { state } = get()
+    const { wins, stardustEarned } = recordAnimalChessWin(state.animalChessWins)
+    if (stardustEarned === 0) {
+      return false // 赢了，但今日奖励已经领完，不再重复给
+    }
+    set((prev) => {
+      const nextState: AppState = {
+        ...prev.state,
+        animalChessWins: wins,
+        stardust: { balance: earnStardust(prev.state.stardust.balance, stardustEarned) },
+        // 特意不调用 withGrowthTimestamp：小游戏不算「成长行为」，不会唤醒沉睡宠物
+      }
       saveState(nextState)
       return { state: nextState }
     })

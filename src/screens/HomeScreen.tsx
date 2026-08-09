@@ -17,6 +17,7 @@ interface HomeScreenProps {
   onOpenTasks: () => void
   onOpenDex: () => void
   onOpenSettings: () => void
+  onOpenAnimalChess: () => void
 }
 
 const JOY_DURATION_MS = 2200
@@ -32,6 +33,7 @@ export function HomeScreen({
   onOpenTasks,
   onOpenDex,
   onOpenSettings,
+  onOpenAnimalChess,
 }: HomeScreenProps) {
   const { t } = useTranslation()
   const { pet, lifecycleStatus, canFeed, feedCost, feedPet } = usePetStore()
@@ -89,7 +91,7 @@ export function HomeScreen({
       {/* 主体：手机单列，桌面双栏 */}
       <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:items-stretch">
         {/* 宠物场景（主视觉） */}
-        <div className="flex min-h-[52vh] flex-col lg:min-h-[70vh] lg:flex-[3]">
+        <div className="flex min-h-[52vh] flex-col lg:min-h-[480px] lg:flex-[3]">
           <PetScene
             pet={pet}
             joy={joy}
@@ -153,6 +155,23 @@ export function HomeScreen({
           </div>
 
           <EggCard />
+
+          {/* 斗兽棋小游戏——独立娱乐入口，跟成长系统的星尘经济刻意区隔开 */}
+          <button
+            type="button"
+            onClick={onOpenAnimalChess}
+            className="flex items-center justify-between rounded-2xl bg-card/80 px-4 py-3 text-left shadow-soft"
+          >
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-medium text-ink-700">
+                {t('home.animalChessButton')}
+              </span>
+              <span className="text-[10px] text-ink-400">{t('home.animalChessHint')}</span>
+            </div>
+            <span className="flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] border-line text-base text-ink-400">
+              ›
+            </span>
+          </button>
 
           <button
             type="button"

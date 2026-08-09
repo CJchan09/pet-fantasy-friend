@@ -40,7 +40,7 @@ export function PetScene({ pet, joy, lifecycleStatus, canFeed, feedCost, onFeed 
   const isTired = lifecycleStatus === 'tired'
 
   return (
-    <div className="relative flex flex-1 flex-col items-center justify-end overflow-hidden rounded-[20px] shadow-soft [background:radial-gradient(120%_90%_at_50%_20%,#FBF6EA_0%,#F1E7D2_55%,#E8DCC2_100%)]">
+    <div className="relative flex flex-1 flex-col items-center justify-center gap-6 overflow-hidden rounded-[20px] py-6 shadow-soft [background:radial-gradient(120%_90%_at_50%_20%,#FBF6EA_0%,#F1E7D2_55%,#E8DCC2_100%)]">
       {/* 星光粒子：沉睡时停止 */}
       {!isDormant && (
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
@@ -69,20 +69,20 @@ export function PetScene({ pet, joy, lifecycleStatus, canFeed, feedCost, onFeed 
 
       {/* 宠物 */}
       <div
-        className={`relative mt-10 flex flex-col items-center ${isDormant ? '' : 'animate-breathe'}`}
+        className={`relative flex flex-col items-center ${isDormant ? '' : 'animate-breathe'}`}
       >
         <PetSprite
           species={pet.species}
           joy={joy}
           lifecycleStatus={lifecycleStatus}
           alt={pet.name}
-          className="h-52 w-auto object-contain [filter:drop-shadow(0_24px_32px_rgba(90,78,55,0.18))] sm:h-64"
+          className="h-52 w-auto object-contain [filter:drop-shadow(0_24px_32px_rgba(90,78,55,0.18))] sm:h-64 lg:h-72"
         />
         <div className="-mt-3 h-5 w-40 [background:radial-gradient(50%_50%_at_50%_50%,rgba(90,78,55,0.16),transparent_70%)]" />
       </div>
 
       {/* 等级条 + 喂养 */}
-      <div className="z-10 mb-5 mt-3 flex w-[85%] max-w-sm flex-col gap-2">
+      <div className="z-10 flex w-[85%] max-w-sm flex-col gap-2">
         <div className="flex items-center justify-between text-[13px] text-ink-600">
           <span className="font-medium">
             {pet.name} · {t(creature.speciesKey)}

@@ -29,7 +29,9 @@
     },
     "eggRemaining": "{{count}} ⭐ to go",
     "eggAdvanceHint": "Tap to nurture · costs {{cost}} ⭐",
-    "eggAdvanceNotEnoughHint": "Not enough stardust yet — go earn some"
+    "eggAdvanceNotEnoughHint": "Not enough stardust yet — go earn some",
+    "animalChessButton": "Jungle Chess",
+    "animalChessHint": "Win a match for +10 ⭐ · play a friend too"
   },
   "reflection": {
     "questionGratitude": "What are you grateful for today?",
@@ -116,5 +118,11 @@
     "importSuccess": "Import successful",
     "importError": "Invalid file — import failed",
     "languageLabel": "Language / 语言"
+  },
+  "animalChess": {
+    "title": "Jungle Chess",
+    "backButton": "Back",
+    "rewardedHint": "You won! Stardust earned",
+    "wonNoRewardHint": "You won! But today's reward is already used up"
   }
 }

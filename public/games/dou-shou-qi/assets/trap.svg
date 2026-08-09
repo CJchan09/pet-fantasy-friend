@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e3e8ee"/>
+      <stop offset="0.45" stop-color="#a8b0ba"/>
+      <stop offset="0.55" stop-color="#7c848f"/>
+      <stop offset="1" stop-color="#525a66"/>
+    </linearGradient>
+    <radialGradient id="pit" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#120d07" stop-opacity="0.62"/>
+      <stop offset="0.75" stop-color="#2b1e10" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#2b1e10" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- 中间只压一层淡阴影，让泥土纹理透出来 -->
+  <circle cx="50" cy="50" r="27" fill="url(#pit)"/>
+  <!-- 上下铰链弹簧：画在缺口外侧，不要把两片夹口连成一整圈 -->
+  <g fill="#6b7280" stroke="#2f2a24" stroke-width="1">
+    <rect x="45.5" y="2.5" width="9" height="5.5" rx="2.2"/>
+    <rect x="45.5" y="92" width="9" height="5.5" rx="2.2"/>
+  </g>
+  <g stroke="#2f2a24" stroke-width="1.1" stroke-linejoin="round" fill="url(#steel)">
+    <path d="M 69.52,11.69 A 43.0,43.0 0 0 1 69.52,88.31 L 65.89,81.19 L 65.83,70.63 L 76.01,73.42 L 72.17,63.58 L 82.68,62.54 L 75.56,54.74 L 85.00,50.00 L 75.56,45.26 L 82.68,37.46 L 72.17,36.42 L 76.01,26.58 L 65.83,29.37 L 65.89,18.81 Z"/>
+    <path d="M 30.48,88.31 A 43.0,43.0 0 0 1 30.48,11.69 L 34.11,18.81 L 34.17,29.37 L 23.99,26.58 L 27.83,36.42 L 17.32,37.46 L 24.44,45.26 L 15.00,50.00 L 24.44,54.74 L 17.32,62.54 L 27.83,63.58 L 23.99,73.42 L 34.17,70.63 L 34.11,81.19 Z"/>
+  </g>
+</svg>

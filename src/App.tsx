@@ -7,9 +7,18 @@ import { FocusScreen } from '@/screens/FocusScreen'
 import { TasksScreen } from '@/screens/TasksScreen'
 import { DexScreen } from '@/screens/DexScreen'
 import { SettingsScreen } from '@/screens/SettingsScreen'
+import { AnimalChessScreen } from '@/screens/AnimalChessScreen'
 import { useGameStore } from '@/store/useGameStore'
 
-type Screen = 'home' | 'reflection' | 'history' | 'focus' | 'tasks' | 'dex' | 'settings'
+type Screen =
+  | 'home'
+  | 'reflection'
+  | 'history'
+  | 'focus'
+  | 'tasks'
+  | 'dex'
+  | 'settings'
+  | 'animal-chess'
 
 /**
  * 阶段一没有 URL 深链需求，单页 App 用本地视图状态切换即可，不引入 react-router。
@@ -42,6 +51,9 @@ function App() {
   if (screen === 'settings') {
     return <SettingsScreen onBack={goHome} />
   }
+  if (screen === 'animal-chess') {
+    return <AnimalChessScreen onBack={goHome} />
+  }
   return (
     <HomeScreen
       onOpenReflection={() => setScreen('reflection')}
@@ -50,6 +62,7 @@ function App() {
       onOpenTasks={() => setScreen('tasks')}
       onOpenDex={() => setScreen('dex')}
       onOpenSettings={() => setScreen('settings')}
+      onOpenAnimalChess={() => setScreen('animal-chess')}
     />
   )
 }

@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { useGameStore } from '../useGameStore'
 import {
+  ANIMAL_CHESS_DAILY_WIN_LIMIT,
+  ANIMAL_CHESS_WIN_REWARD,
   EGG_ADVANCE_CHUNK,
   EGG_COMMON_COST,
   FEED_STARDUST_COST,
@@ -202,6 +204,45 @@ describe('useGameStore 起始宠物三选一', () => {
   it('选择非默认生物时，默认生物不会残留在图鉴里（回归：createDefaultState 曾预置 mossbear 为已拥有）', () => {
     useGameStore.getState().chooseStarter('spiritfox', '阿灵')
     expect(useGameStore.getState().state.ownedCreatures.mossbear).toBeUndefined()
+  })
+})
+
+describe('useGameStore 斗兽棋结果记账', () => {
+  it('人机对战，人赢了发放星尘，且不算成长行为（不唤醒宠物）', () => {
+    const rewarded = useGameStore
+      .getState()
+      .recordAnimalChessResult({ winner: 'red', aiOwner: 'blue' })
+    expect(rewarded).toBe(true)
+    expect(useGameStore.getState().state.stardust.balance).toBe(ANIMAL_CHESS_WIN_REWARD)
+    expect(useGameStore.getState().state.lastGrowthAt).toBeNull()
+  })
+
+  it('人机对战，AI 赢了不发星尘也不扣分', () => {
+    const rewarded = useGameStore
+      .getState()
+      .recordAnimalChessResult({ winner: 'blue', aiOwner: 'blue' })
+    expect(rewarded).toBe(false)
+    expect(useGameStore.getState().state.stardust.balance).toBe(0)
+  })
+
+  it('本地双人对战，任何一方赢都发放星尘', () => {
+    const rewarded = useGameStore
+      .getState()
+      .recordAnimalChessResult({ winner: 'blue', aiOwner: null })
+    expect(rewarded).toBe(true)
+    expect(useGameStore.getState().state.stardust.balance).toBe(ANIMAL_CHESS_WIN_REWARD)
+  })
+
+  it('超过每日赢局奖励上限后不再发放', () => {
+    for (let i = 0; i < ANIMAL_CHESS_DAILY_WIN_LIMIT; i++) {
+      useGameStore.getState().recordAnimalChessResult({ winner: 'red', aiOwner: 'blue' })
+    }
+    const balanceBefore = useGameStore.getState().state.stardust.balance
+    const rewarded = useGameStore
+      .getState()
+      .recordAnimalChessResult({ winner: 'red', aiOwner: 'blue' })
+    expect(rewarded).toBe(false)
+    expect(useGameStore.getState().state.stardust.balance).toBe(balanceBefore)
   })
 })
 

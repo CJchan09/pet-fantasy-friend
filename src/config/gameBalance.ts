@@ -56,3 +56,13 @@ export const LEGENDARY_UNLOCK_REFLECTION_COUNT = 30
  */
 export const PET_TIRED_AFTER_DAYS = 2
 export const PET_DORMANT_AFTER_DAYS = 5
+
+/**
+ * 斗兽棋小游戏赢局奖励。
+ * ⚠️ 产品原则提醒：PRD 1.3 明确「星尘只能靠真实的成长行为赚取」（反思/任务/专注）。
+ * 这条奖励是 CJ 后加的需求，技术上打破了这条硬性原则——为了不让它变成新的主要刷币入口，
+ * 数值刻意压得很低（远低于反思 40⭐），且不计入 PRIMARY/SECONDARY 平衡红线的产出对比。
+ * 也不算「成长行为」，不会触发宠物状态机唤醒（见 store/useGameStore.ts）。
+ */
+export const ANIMAL_CHESS_WIN_REWARD = 10
+export const ANIMAL_CHESS_DAILY_WIN_LIMIT = 2

@@ -12,6 +12,10 @@ Web 端奇幻宠物养成应用。产品文档见上级目录 `../docs/`（PRD /
 - **动画**：待机随机眨眼（睁眼/闭眼两帧姿势对齐，3.5–7 秒随机间隔）；喂养时切喜悦帧 2.2 秒；疲倦/沉睡态用真实的对应美术（不眨眼）；星光粒子闪烁 + 宠物呼吸浮动，沉睡时停止（`prefers-reduced-motion` 时全部停用）。
 - **网站图标**：设计侧交付的蛋形 Logo（`../Image/logo/`）经 `scripts/generateIcons.mjs` 裁切/生成 favicon、apple-touch-icon、PWA manifest 图标（含 maskable 变体），输出到 `public/`。源图四周留白很多，脚本按小尺寸场景（favicon 等）裁紧、按需要安全边距的场景（maskable）保留原始留白，两种都不用手动再调。Logo 更新后重跑该脚本即可。
 
+**小游戏——斗兽棋**：CJ 自己做的独立 HTML5 小游戏（`../dou-shou-qi/`，支持人机对战 + 本地双人对战），经 `scripts/convertAnimalChessAssets.mjs` 转 WebP（13MB → 352KB，顺便去掉了代码里未引用的全身图美术）后嵌入 `public/games/dou-shou-qi/`，主界面加一个入口按钮，用 `<iframe>` 打开。赢一局给 10 ⭐（每日最多 2 次），输了不扣分；游戏结束时通过 `postMessage` 把结果报给外层 React 页面，由外层决定要不要发星尘——游戏本身不需要知道任何星尘逻辑。
+
+⚠️ **产品原则提醒**：PRD 1.3 写明「星尘只能靠真实的成长行为赚取」，这条奖励技术上突破了这条硬性原则，是 CJ 明确要求加的。为了不让它变成新的主要刷币入口：数值压得很低（10⭐，远低于反思的 40⭐）、每日上限 2 次、不计入 `gameBalance.ts` 里 PRIMARY/SECONDARY 的平衡红线对比、也不算「成长行为」（不会唤醒沉睡的宠物）。如果不想要这个例外，回退方式很简单：删掉 `useGameStore.ts` 里 `recordAnimalChessResult` 对 `stardust` 的那行赋值即可，游戏本身完全不受影响。
+
 ## 技术栈
 
 React + TypeScript + Vite + Tailwind CSS v4 + Zustand + react-i18next + vite-plugin-pwa + Vitest。部署：GitHub Actions 构建 → GitHub Pages（`.github/workflows/deploy.yml`，push 到 `main` 自动重新部署）。
@@ -21,7 +25,7 @@ React + TypeScript + Vite + Tailwind CSS v4 + Zustand + react-i18next + vite-plu
 ```bash
 npm install
 npm run dev       # 本地开发，默认 http://localhost:5173
-npm run test      # 跑 Vitest（domain / storage / store 单测，78 个）
+npm run test      # 跑 Vitest（domain / storage / store 单测，89 个）
 npm run build     # 生产构建（tsc -b && vite build）
 npm run preview   # 预览生产构建
 ```
@@ -36,8 +40,9 @@ src/
 ├── domain/                # 纯业务逻辑，不依赖 React
 │   ├── stardust.ts / reflection.ts / pet.ts       # 阶段一
 │   ├── tasks.ts / focus.ts / incubation.ts / petLifecycle.ts   # 阶段二
+│   ├── animalChess.ts     # 斗兽棋结果 -> 是否发星尘的纯判定逻辑
 │   └── __tests__/
-├── storage/localStorageAdapter.ts  # localStorage 读写、schemaVersion（现为 2）迁移、导出/导入 JSON
+├── storage/localStorageAdapter.ts  # localStorage 读写、schemaVersion（现为 3）迁移、导出/导入 JSON
 ├── store/
 │   ├── useGameStore.ts    # 唯一持久化 store，全部 AppState 一起读写 localStorage
 │   ├── useFocusTimerStore.ts  # 专注倒计时，特意不持久化（刷新=中断，荣誉制）
@@ -45,8 +50,13 @@ src/
 ├── i18n/                  # react-i18next 配置 + zh-CN.json（简体，先行）+ en.json
 ├── components/            # UI 组件（pet/、reflection/、incubation/、stardust/）
 └── screens/                # HomeScreen / ReflectionScreen / ReflectionHistoryScreen /
-                              StarterPickerScreen / FocusScreen / TasksScreen / DexScreen / SettingsScreen
-scripts/convertCreatures.mjs   # 美术资产管线：设计侧 PNG → public/creatures/*.webp
+                              StarterPickerScreen / FocusScreen / TasksScreen / DexScreen /
+                              SettingsScreen / AnimalChessScreen
+scripts/
+├── convertCreatures.mjs         # 美术资产管线：设计侧 PNG → public/creatures/*.webp
+├── generateIcons.mjs            # 网站图标管线：设计侧 Logo → public/*.png + favicon.svg
+└── convertAnimalChessAssets.mjs # 斗兽棋资产管线：../dou-shou-qi/ → public/games/dou-shou-qi/
+public/games/dou-shou-qi/  # 嵌入的斗兽棋小游戏（独立 HTML，iframe 加载，见 AnimalChessScreen.tsx）
 ```
 
 ## 已做的判断（PRD 未给出具体数值 / 方案之处）
@@ -60,6 +70,7 @@ scripts/convertCreatures.mjs   # 美术资产管线：设计侧 PNG → public/c
 - **蛋位数量**：先给 1 个（Free 档基础值），不引入没有解锁路径的「锁定第二蛋位」UI（订阅系统还没做）。
 - **专注计时**：倒计时本身不持久化（刷新=中断，不惩罚），但「今日已完成几次」持久化，避免刷新绕过每日上限。
 - **中文文案**：简体中文。
+- **斗兽棋奖励数值**：赢一局 10⭐、每日上限 2 次（20⭐/天）。这是 CJ 后加的需求，跟 PRD「星尘只能靠成长行为赚取」的原则有张力，数值刻意压低+设上限，详见上文「小游戏」小节的产品原则提醒。
 
 ## 还没做（v0.5 之后 / 本次范围之外）
 
