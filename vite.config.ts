@@ -20,6 +20,13 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       base,
+      workbox: {
+        // 斗兽棋游戏用 <iframe src="games/dou-shou-qi/index.html"> 嵌入，iframe 加载也是一次
+        // navigation 请求。Workbox 的 SPA 离线兜底默认会把所有 navigation 请求都导回 index.html，
+        // 这会导致 iframe 实际显示的是 App 主界面而不是游戏本身（线上实测发现，本地 dev 因为没装
+        // service worker测不出来）。把 /games/ 路径排除在 SPA 兜底之外即可。
+        navigateFallbackDenylist: [/\/games\//],
+      },
       manifest: {
         name: 'Pet Fantasy Friend',
         short_name: 'PFF',
