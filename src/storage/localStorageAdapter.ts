@@ -1,5 +1,6 @@
-import { CURRENT_SCHEMA_VERSION, type AppState } from '@/types'
+import { CURRENT_SCHEMA_VERSION, type AppState, type EggState } from '@/types'
 import { CREATURES, DEFAULT_SPECIES } from '@/config/creatures'
+import { unownedSpecies } from '@/domain/incubation'
 
 /**
  * 全部数据只存 localStorage，不发起任何网络请求（PRD 5.1 / 隐私红线）。
@@ -40,6 +41,9 @@ export function createDefaultState(): AppState {
  * v1 存档已经有一只在养的宠物（旧版没有三选一流程，直接给苔熊），迁移时视为「已完成起始选择」，
  * 否则线上现有玩家刷新会突然被打回三选一页面。
  * v2 -> v3：新增 animalChessWins（斗兽棋赢局记账），旧存档没有则回退空数组。
+ * v3 -> v4：蛋从「按稀有度抽、孵化时才随机定生物」改为「抽蛋时就定生物」；
+ *           旧格式的蛋（{rarity, progress}）迁移时就地抽一只未拥有的生物、保留已投入的进度，
+ *           全部拥有时清空蛋位（旧逻辑下这种蛋孵出来也只是重复安慰奖）。
  */
 function migrate(raw: unknown): AppState {
   const state = raw as Partial<AppState> & { pet?: Partial<AppState['pet']> }
@@ -52,6 +56,23 @@ function migrate(raw: unknown): AppState {
     state.schemaVersion < 2 && state.hasChosenStarter === undefined
 
   const mergedPet = { ...defaults.pet, ...state.pet }
+  const ownedCreatures =
+    state.ownedCreatures && Object.keys(state.ownedCreatures).length > 0
+      ? state.ownedCreatures
+      : { [mergedPet.species]: true }
+
+  let egg: EggState | null = (state.egg as EggState | null | undefined) ?? null
+  if (egg && typeof (egg as Partial<EggState>).species !== 'string') {
+    const legacyProgress =
+      typeof (egg as { progress?: unknown }).progress === 'number'
+        ? (egg as { progress: number }).progress
+        : 0
+    const pool = unownedSpecies(ownedCreatures)
+    egg =
+      pool.length > 0
+        ? { species: pool[Math.floor(Math.random() * pool.length)], progress: legacyProgress }
+        : null
+  }
 
   return {
     ...defaults,
@@ -63,10 +84,8 @@ function migrate(raw: unknown): AppState {
     tasks: state.tasks ?? defaults.tasks,
     focusSessions: state.focusSessions ?? defaults.focusSessions,
     animalChessWins: state.animalChessWins ?? defaults.animalChessWins,
-    ownedCreatures:
-      state.ownedCreatures && Object.keys(state.ownedCreatures).length > 0
-        ? state.ownedCreatures
-        : { [mergedPet.species]: true },
+    egg,
+    ownedCreatures,
     hasChosenStarter: isLegacyV1WithoutStarterFlag ? true : (state.hasChosenStarter ?? false),
   }
 }

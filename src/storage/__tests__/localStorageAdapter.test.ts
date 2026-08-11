@@ -15,7 +15,7 @@ beforeEach(() => {
 describe('localStorageAdapter', () => {
   it('没有存档时返回默认状态', () => {
     const state = loadState()
-    expect(state.schemaVersion).toBe(3)
+    expect(state.schemaVersion).toBe(4)
     expect(state.stardust.balance).toBe(0)
     expect(state.reflections).toEqual([])
     expect(state.hasChosenStarter).toBe(false)
@@ -36,13 +36,32 @@ describe('localStorageAdapter', () => {
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(legacyV1))
     const migrated = loadState()
-    expect(migrated.schemaVersion).toBe(3)
+    expect(migrated.schemaVersion).toBe(4)
     expect(migrated.hasChosenStarter).toBe(true)
     expect(migrated.stardust.balance).toBe(55)
     expect(migrated.pet.intimacy).toBe(30)
     expect(migrated.ownedCreatures.mossbear).toBe(true)
     expect(migrated.tasks).toEqual([])
     expect(migrated.animalChessWins).toEqual([])
+  })
+
+  it('v3 旧格式的蛋（{rarity, progress}）迁移为「就地抽定生物」并保留进度', () => {
+    const legacyV3 = {
+      schemaVersion: 3,
+      pet: { name: '苔苔', species: 'mossbear', intimacy: 10, level: 1 },
+      stardust: { balance: 100 },
+      reflections: [],
+      draftReflection: null,
+      hasChosenStarter: true,
+      ownedCreatures: { mossbear: true },
+      egg: { rarity: 'common', progress: 40 },
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(legacyV3))
+    const migrated = loadState()
+    expect(migrated.egg).not.toBeNull()
+    expect(typeof migrated.egg?.species).toBe('string')
+    expect(migrated.egg?.species).not.toBe('mossbear') // 只会抽到未拥有的
+    expect(migrated.egg?.progress).toBe(40) // 已投入的星尘不丢
   })
 
   it('全新存档（真的没玩过）hasChosenStarter 为 false', () => {

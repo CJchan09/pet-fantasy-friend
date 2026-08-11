@@ -106,29 +106,27 @@ html = applyPatch(
   '<option value="ai-red" id="modeOptAiRed">我执蓝，AI 执红</option>',
   '模式选项-AI执红 加 id',
 )
+// 规则区：把源文件那 4 条简版图例整块换成空容器，运行时按语言填入完整规则（8 条）
 html = applyPatch(
   html,
-  '<span>象8 &gt; 狮7 &gt; 虎6 &gt; 豹5 &gt; 狼4 &gt; 狗3 &gt; 猫2 &gt; 鼠1</span>',
-  '<span id="legend1">象8 &gt; 狮7 &gt; 虎6 &gt; 豹5 &gt; 狼4 &gt; 狗3 &gt; 猫2 &gt; 鼠1</span>',
-  '图例1 加 id',
+  `  <div id="legend">
+    <span>象8 &gt; 狮7 &gt; 虎6 &gt; 豹5 &gt; 狼4 &gt; 狗3 &gt; 猫2 &gt; 鼠1</span>
+    <span>鼠可下河吃象（需在陆地）；象不能吃鼠</span>
+    <span>只有鼠能下河；狮/虎可跳河（鼠挡路则不能跳）</span>
+    <span>踩进对方陷阱的棋子任何子都能吃</span>
+  </div>`,
+  `  <div id="legendTitle" style="margin-top:6px; font-size:13px; font-weight:700; color:#d8cca8;"></div>
+  <div id="legend"></div>`,
+  '图例区换成空容器（运行时填入完整规则）',
 )
+
+// 规则条目变长了，nowrap 会在手机上撑爆——改成逐行排版、允许换行
 html = applyPatch(
   html,
-  '<span>鼠可下河吃象（需在陆地）；象不能吃鼠</span>',
-  '<span id="legend2">鼠可下河吃象（需在陆地）；象不能吃鼠</span>',
-  '图例2 加 id',
-)
-html = applyPatch(
-  html,
-  '<span>只有鼠能下河；狮/虎可跳河（鼠挡路则不能跳）</span>',
-  '<span id="legend3">只有鼠能下河；狮/虎可跳河（鼠挡路则不能跳）</span>',
-  '图例3 加 id',
-)
-html = applyPatch(
-  html,
-  '<span>踩进对方陷阱的棋子任何子都能吃</span>',
-  '<span id="legend4">踩进对方陷阱的棋子任何子都能吃</span>',
-  '图例4 加 id',
+  `  #legend span { white-space: nowrap; }`,
+  `  #legend { flex-direction: column; gap: 5px; align-items: flex-start; text-align: left; padding: 0 8px; }
+  #legend span { white-space: normal; line-height: 1.55; }`,
+  '图例 CSS 改为纵向可换行排版',
 )
 
 // ---- JS：插入 I18N 字典 + 把 TYPES 里的动物名换成按语言取值，
@@ -167,10 +165,17 @@ const TYPES_PATCHED = `  const ROWS = 9, COLS = 7;
       thinkingSuffix: '（AI）思考中…',
       winRed: '红方获胜！',
       winBlue: '蓝方获胜！',
-      legend1: '象8 > 狮7 > 虎6 > 豹5 > 狼4 > 狗3 > 猫2 > 鼠1',
-      legend2: '鼠可下河吃象（需在陆地）；象不能吃鼠',
-      legend3: '只有鼠能下河；狮/虎可跳河（鼠挡路则不能跳）',
-      legend4: '踩进对方陷阱的棋子任何子都能吃',
+      legendTitle: '游戏规则',
+      legend: [
+        '目标：把任意一只棋子走进对方兽穴，或让对方无棋可走，即获胜',
+        '走法：每回合走一格，只能上下左右，不能斜走',
+        '等级：象8 > 狮7 > 虎6 > 豹5 > 狼4 > 狗3 > 猫2 > 鼠1，只能吃等级不高于自己的棋子',
+        '特例：鼠可以吃象，象不能吃鼠',
+        '河流：只有鼠能下河；河里的鼠不能吃岸上的棋子，岸上的棋子也不能吃河里的鼠',
+        '跳河：狮、虎可沿直线跃过河直达对岸，可直接吃掉落点的棋子；河道中有鼠挡路时不能跳',
+        '陷阱：踩进对方陷阱的棋子等级归零，任何棋子都能吃它；自己的陷阱对自己无效',
+        '兽穴：不能走进自己的兽穴',
+      ],
     },
     en: {
       animals: { rat:'Rat', cat:'Cat', dog:'Dog', wolf:'Wolf', leopard:'Leo', tiger:'Tig', lion:'Lion', elephant:'Ele' },
@@ -188,10 +193,17 @@ const TYPES_PATCHED = `  const ROWS = 9, COLS = 7;
       thinkingSuffix: ' (AI) thinking…',
       winRed: 'Red wins!',
       winBlue: 'Blue wins!',
-      legend1: 'Elephant8 > Lion7 > Tiger6 > Leopard5 > Wolf4 > Dog3 > Cat2 > Rat1',
-      legend2: "Rat can enter the river to capture Elephant (must be on land); Elephant can't capture Rat",
-      legend3: 'Only Rat can swim; Lion/Tiger can leap the river (blocked if a Rat is in the way)',
-      legend4: "A piece standing in the opponent's trap can be captured by anything",
+      legendTitle: 'How to play',
+      legend: [
+        "Goal: move any piece into the opponent's den, or leave them with no legal moves, to win",
+        'Movement: one square per turn, up / down / left / right only — no diagonals',
+        'Ranks: Elephant 8 > Lion 7 > Tiger 6 > Leopard 5 > Wolf 4 > Dog 3 > Cat 2 > Rat 1 — a piece can capture anything of equal or lower rank',
+        "Exception: the Rat can capture the Elephant, but the Elephant can't capture the Rat",
+        "River: only the Rat can swim; a Rat in the river can't capture pieces on land, and land pieces can't capture it",
+        'Leap: the Lion and Tiger jump straight across the river and may capture on landing — blocked if a Rat is in the way',
+        "Traps: a piece standing in the opponent's trap drops to rank 0 and can be captured by anything; your own traps don't affect you",
+        'Den: you may never enter your own den',
+      ],
     },
   };
   const LANG = new URLSearchParams(location.search).get('lang') === 'en' ? 'en' : 'zh-CN';
@@ -205,10 +217,13 @@ const TYPES_PATCHED = `  const ROWS = 9, COLS = 7;
   document.getElementById('modeOptAiRed').textContent = L.modeAiRed;
   document.getElementById('restartBtn').textContent = L.restart;
   document.getElementById('winRestartBtn').textContent = L.playAgain;
-  document.getElementById('legend1').textContent = L.legend1;
-  document.getElementById('legend2').textContent = L.legend2;
-  document.getElementById('legend3').textContent = L.legend3;
-  document.getElementById('legend4').textContent = L.legend4;
+  document.getElementById('legendTitle').textContent = L.legendTitle;
+  const legendEl = document.getElementById('legend');
+  L.legend.forEach(function(rule){
+    const s = document.createElement('span');
+    s.textContent = rule;
+    legendEl.appendChild(s);
+  });
 
   // art: 头像图路径。想换回全身图，把 head/ 去掉即可（assets/rat.png）
   const TYPES = {

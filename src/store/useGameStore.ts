@@ -24,15 +24,14 @@ import { completeFocusSession as completeFocusSessionDomain } from '@/domain/foc
 import {
   advanceEgg as advanceEggDomain,
   checkLegendaryUnlock,
-  isDuplicateHatch,
-  startNewEgg as startNewEggDomain,
+  drawEggSpecies,
 } from '@/domain/incubation'
 import {
   isHumanWin,
   recordAnimalChessWin,
   type AnimalChessResult,
 } from '@/domain/animalChess'
-import { FEED_STARDUST_COST, EGG_ADVANCE_CHUNK, EGG_COMMON_COST, EGG_RARE_COST } from '@/config/gameBalance'
+import { FEED_STARDUST_COST, EGG_ADVANCE_CHUNK } from '@/config/gameBalance'
 import { CREATURES } from '@/config/creatures'
 
 interface GameStore {
@@ -48,12 +47,15 @@ interface GameStore {
   removeTask: (id: string) => void
   toggleTask: (id: string) => void
   completeFocusSession: () => boolean
+  /** 抽一颗蛋：抽的瞬间就定好蛋里的生物（未拥有池随机）；已有蛋或全部集齐时返回 false */
+  drawEgg: () => boolean
   advanceEgg: () => boolean
-  startNewEgg: (rarity: 'common' | 'rare') => boolean
   /** 返回是否实际发了星尘（输了 / 今日奖励已领完时是 false，但输不扣分，state 不变） */
   recordAnimalChessResult: (result: AnimalChessResult) => boolean
   exportSave: () => string
   importSave: (json: string) => boolean
+  /** 清除全部数据回到初始状态（重新选起始宠物）；调用方负责先向用户确认 */
+  resetGame: () => void
   resetForTests: () => void
 }
 
@@ -261,50 +263,44 @@ export const useGameStore = create<GameStore>((set, get) => ({
     return true
   },
 
-  advanceEgg: () => {
+  drawEgg: () => {
     const { state } = get()
-    if (!state.egg) {
+    if (state.egg) {
       return false
     }
-    const result = advanceEggDomain(state.egg, state.stardust.balance, state.ownedCreatures)
-    if (!result) {
-      return false
+    const species = drawEggSpecies(state.ownedCreatures)
+    if (!species) {
+      return false // 全部集齐，没得抽了
     }
     set((prev) => {
-      let ownedCreatures = prev.state.ownedCreatures
-      let stardustBalance = result.stardustBalance
-
-      if (result.hatchedSpecies) {
-        const duplicate = isDuplicateHatch(result.hatchedSpecies, prev.state.ownedCreatures)
-        ownedCreatures = { ...ownedCreatures, [result.hatchedSpecies]: true }
-        if (duplicate) {
-          // 同稀有度已经全部拥有时的重复孵化：返还一半蛋成本作为安慰，而不是做不出意义的「加亲密度」
-          const refund = Math.round(
-            (prev.state.egg!.rarity === 'common' ? EGG_COMMON_COST : EGG_RARE_COST) / 2,
-          )
-          stardustBalance = earnStardust(stardustBalance, refund)
-        }
-      }
-
-      const nextState: AppState = {
-        ...prev.state,
-        egg: result.egg,
-        stardust: { balance: stardustBalance },
-        ownedCreatures,
-      }
+      const nextState: AppState = { ...prev.state, egg: { species, progress: 0 } }
       saveState(nextState)
       return { state: nextState }
     })
     return true
   },
 
-  startNewEgg: (rarity) => {
+  advanceEgg: () => {
     const { state } = get()
-    if (state.egg) {
+    if (!state.egg) {
+      return false
+    }
+    const result = advanceEggDomain(state.egg, state.stardust.balance)
+    if (!result) {
       return false
     }
     set((prev) => {
-      const nextState: AppState = { ...prev.state, egg: startNewEggDomain(rarity) }
+      // 抽蛋时已保证不重复（池子里只有未拥有的生物），孵化直接入图鉴即可
+      const ownedCreatures = result.hatchedSpecies
+        ? { ...prev.state.ownedCreatures, [result.hatchedSpecies]: true }
+        : prev.state.ownedCreatures
+
+      const nextState: AppState = {
+        ...prev.state,
+        egg: result.egg,
+        stardust: { balance: result.stardustBalance },
+        ownedCreatures,
+      }
       saveState(nextState)
       return { state: nextState }
     })
@@ -356,10 +352,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
     return true
   },
 
-  resetForTests: () => {
+  resetGame: () => {
     const fresh = createDefaultState()
     saveState(fresh)
     set({ state: fresh })
+  },
+
+  resetForTests: () => {
+    get().resetGame()
   },
 }))
 

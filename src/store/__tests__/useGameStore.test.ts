@@ -158,36 +158,92 @@ describe('useGameStore 专注计时记账', () => {
   })
 })
 
-describe('useGameStore 孵化系统', () => {
-  it('新建蛋后推进直至孵化，蛋位清空且生物加入图鉴', () => {
+describe('useGameStore 孵化系统（抽蛋 → 浇灌 → 孵化）', () => {
+  it('抽蛋时就定好生物，孵化后蛋位清空、该生物入图鉴', () => {
     useGameStore.setState((prev) => ({
       state: { ...prev.state, stardust: { balance: 1000 } },
     }))
-    useGameStore.getState().startNewEgg('common')
-    expect(useGameStore.getState().state.egg).not.toBeNull()
+    useGameStore.getState().drawEgg()
+    const drawnSpecies = useGameStore.getState().state.egg?.species
+    expect(drawnSpecies).toBeTruthy()
 
     const steps = Math.ceil(EGG_COMMON_COST / EGG_ADVANCE_CHUNK)
     for (let i = 0; i < steps; i++) {
       useGameStore.getState().advanceEgg()
     }
     expect(useGameStore.getState().state.egg).toBeNull()
-    const owned = useGameStore.getState().state.ownedCreatures
-    expect(Object.values(owned).some(Boolean)).toBe(true)
+    expect(useGameStore.getState().state.ownedCreatures[drawnSpecies!]).toBe(true)
   })
 
-  it('已经有蛋时不能再新建（蛋位只有 1 个）', () => {
-    useGameStore.setState((prev) => ({ state: { ...prev.state, stardust: { balance: 1000 } } }))
-    useGameStore.getState().startNewEgg('common')
-    const startedAgain = useGameStore.getState().startNewEgg('rare')
-    expect(startedAgain).toBe(false)
-    expect(useGameStore.getState().state.egg?.rarity).toBe('common')
+  it('已经有蛋时不能再抽（蛋位只有 1 个）', () => {
+    useGameStore.getState().drawEgg()
+    const firstSpecies = useGameStore.getState().state.egg?.species
+    const drawnAgain = useGameStore.getState().drawEgg()
+    expect(drawnAgain).toBe(false)
+    expect(useGameStore.getState().state.egg?.species).toBe(firstSpecies)
   })
 
-  it('星尘不足时推进失败', () => {
+  it('抽蛋池只有未拥有的生物：只剩一只时必抽到它', () => {
+    useGameStore.setState((prev) => ({
+      state: {
+        ...prev.state,
+        ownedCreatures: {
+          mossbear: true,
+          spiritfox: true,
+          cloudsheep: true,
+          mistdeer: true,
+          streamturtle: true,
+          // stardragon 是唯一没拥有的
+        },
+      },
+    }))
+    useGameStore.getState().drawEgg()
+    expect(useGameStore.getState().state.egg?.species).toBe('stardragon')
+  })
+
+  it('全部集齐后抽不出蛋', () => {
+    useGameStore.setState((prev) => ({
+      state: {
+        ...prev.state,
+        ownedCreatures: {
+          mossbear: true,
+          spiritfox: true,
+          cloudsheep: true,
+          mistdeer: true,
+          streamturtle: true,
+          stardragon: true,
+        },
+      },
+    }))
+    expect(useGameStore.getState().drawEgg()).toBe(false)
+    expect(useGameStore.getState().state.egg).toBeNull()
+  })
+
+  it('星尘不足时浇灌失败', () => {
     useGameStore.setState((prev) => ({ state: { ...prev.state, stardust: { balance: 0 } } }))
-    useGameStore.getState().startNewEgg('common')
+    useGameStore.getState().drawEgg()
     const advanced = useGameStore.getState().advanceEgg()
     expect(advanced).toBe(false)
+  })
+})
+
+describe('useGameStore 清除数据重新开始', () => {
+  it('resetGame 后回到初始状态，需要重新选起始宠物', () => {
+    useGameStore.getState().chooseStarter('spiritfox', '阿灵')
+    useGameStore.getState().submitReflection({ gratitude: '感恩', learning: '', improvement: '' })
+    expect(useGameStore.getState().state.stardust.balance).toBeGreaterThan(0)
+
+    useGameStore.getState().resetGame()
+
+    const { state } = useGameStore.getState()
+    expect(state.hasChosenStarter).toBe(false)
+    expect(state.stardust.balance).toBe(0)
+    expect(state.reflections).toEqual([])
+    expect(state.ownedCreatures).toEqual({})
+    // localStorage 里的存档也被重置，刷新后不会复活旧数据
+    const raw = JSON.parse(localStorage.getItem('pet-fantasy-friend:save') as string)
+    expect(raw.hasChosenStarter).toBe(false)
+    expect(raw.stardust.balance).toBe(0)
   })
 })
 

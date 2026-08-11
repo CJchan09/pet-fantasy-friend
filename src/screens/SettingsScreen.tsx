@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSettingsStore } from '@/store/useSettingsStore'
+import { useGameStore } from '@/store/useGameStore'
 import { LanguageToggle } from '@/components/LanguageToggle'
 
 interface SettingsScreenProps {
@@ -22,8 +23,18 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
   const { t } = useTranslation()
   const { exportSave, importSave, shouldRemindExport, sizeBytes, shouldWarnSize } =
     useSettingsStore()
+  const resetGame = useGameStore((s) => s.resetGame)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [importResult, setImportResult] = useState<'success' | 'error' | null>(null)
+  const [confirmingReset, setConfirmingReset] = useState(false)
+
+  function handleResetConfirmed() {
+    setConfirmingReset(false)
+    resetGame()
+    // 清空后 hasChosenStarter=false，App 会直接切到三选一页面；
+    // 先把导航拨回主界面，选完新伙伴就落在主界面而不是设置页
+    onBack()
+  }
 
   function handleExport() {
     downloadJson(exportSave())
@@ -107,6 +118,45 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
       <section className="mt-3 flex items-center justify-between rounded-[20px] bg-card p-4 shadow-soft">
         <p className="text-sm font-medium text-ink-800">{t('settings.languageLabel')}</p>
         <LanguageToggle />
+      </section>
+
+      {/* 危险区：清除数据重新开始，必须两步确认 */}
+      <section className="mt-3 flex flex-col gap-3 rounded-[20px] bg-card p-4 shadow-soft">
+        <div>
+          <p className="text-sm font-medium text-ink-800">{t('settings.dangerTitle')}</p>
+          <p className="mt-1 text-xs text-ink-400">{t('settings.dangerHint')}</p>
+        </div>
+        {!confirmingReset ? (
+          <button
+            type="button"
+            onClick={() => setConfirmingReset(true)}
+            className="rounded-xl border border-[#d2352f]/40 py-2.5 text-sm font-medium text-[#b3372f]"
+          >
+            {t('settings.resetButton')}
+          </button>
+        ) : (
+          <div className="flex flex-col gap-2 rounded-xl bg-cream-100 p-3">
+            <p className="text-xs leading-relaxed text-ink-700">
+              {t('settings.resetConfirmHint')}
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmingReset(false)}
+                className="flex-1 rounded-xl border border-line py-2 text-sm font-medium text-ink-700"
+              >
+                {t('settings.resetCancelButton')}
+              </button>
+              <button
+                type="button"
+                onClick={handleResetConfirmed}
+                className="flex-1 rounded-xl bg-[#b3372f] py-2 text-sm font-medium text-white"
+              >
+                {t('settings.resetConfirmButton')}
+              </button>
+            </div>
+          </div>
+        )}
       </section>
     </div>
   )

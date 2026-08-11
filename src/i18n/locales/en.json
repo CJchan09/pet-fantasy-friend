@@ -20,16 +20,18 @@
     "historyLink": "Reflection history",
     "dexLink": "Collection",
     "settingsLink": "Settings",
-    "eggStartTitle": "Start hatching",
-    "eggStartCommon": "Common egg · {{cost}} ⭐",
-    "eggStartRare": "Rare egg · {{cost}} ⭐",
+    "eggDrawTitle": "Nest",
+    "eggDrawHint": "Draw an egg — a friend you haven't met yet",
+    "eggDrawButton": "Draw an egg",
+    "eggDrawnHint": "An egg settled into the nest",
     "eggLabel": {
-      "common": "Hatching · Common egg",
-      "rare": "Hatching · Rare egg"
+      "mystery": "Hatching · Mystery egg"
     },
     "eggRemaining": "{{count}} ⭐ to go",
     "eggAdvanceHint": "Tap to nurture · costs {{cost}} ⭐",
     "eggAdvanceNotEnoughHint": "Not enough stardust yet — go earn some",
+    "collectionCompleteTitle": "Everyone's here",
+    "collectionCompleteHint": "All six creatures collected — new friends will arrive someday",
     "animalChessButton": "Jungle Chess",
     "animalChessHint": "Win a match for +10 ⭐ · play a friend too"
   },
@@ -117,7 +119,13 @@
     "importButton": "Import save",
     "importSuccess": "Import successful",
     "importError": "Invalid file — import failed",
-    "languageLabel": "Language / 语言"
+    "languageLabel": "Language / 语言",
+    "dangerTitle": "Start over",
+    "dangerHint": "Erase all data on this device (stardust, reflections, collection) and pick a new starter",
+    "resetButton": "Erase data & start over",
+    "resetConfirmHint": "Are you sure? All reflections and pet progress will be permanently erased. Consider exporting a backup first",
+    "resetConfirmButton": "Yes, erase everything",
+    "resetCancelButton": "Not now"
   },
   "animalChess": {
     "title": "Jungle Chess",

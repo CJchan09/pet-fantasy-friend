@@ -25,7 +25,7 @@ React + TypeScript + Vite + Tailwind CSS v4 + Zustand + react-i18next + vite-plu
 ```bash
 npm install
 npm run dev       # 本地开发，默认 http://localhost:5173
-npm run test      # 跑 Vitest（domain / storage / store 单测，89 个）
+npm run test      # 跑 Vitest（domain / storage / store 单测，90 个）
 npm run build     # 生产构建（tsc -b && vite build）
 npm run preview   # 预览生产构建
 ```
@@ -64,8 +64,8 @@ public/games/dou-shou-qi/  # 嵌入的斗兽棋小游戏（独立 HTML，iframe 
 - **喂养数值**：`FEED_STARDUST_COST=10` 换 `FEED_INTIMACY_GAIN=10` 亲密度，`INTIMACY_PER_LEVEL=50` 升一级。
 - **反思空白字符判定**：按去除首尾空白后长度 > 0 判断，不是严格按字符数。
 - **单一 Zustand store**：`useGameStore` 是唯一持久化 store，其余 `use*Store` 都是派生选择器，避免多个 store 各自持久化互相覆盖同一个 localStorage key。
-- **6 种生物稀有度**：Common 苔熊/灵狐/云羊，Rare 雾角鹿/溪石龟，Legendary 星岚龙（PRD 只定了数量 3/2/1，没定具体是谁）。
-- **孵化数值**：普通蛋 60⭐、稀有蛋 150⭐、每次浇灌 20⭐、传说生物累计 30 次反思解锁（最后一个是 PRD 原文数字，其余是本次落地决定）。
+- **6 种生物稀有度（CJ 2026-08-10 改版）**：当前 6 只**全部是 common**、只有一个形态（`maxStage: 1`）。未来「更强」的生物走 rare/legendary，`maxStage` 2–3，可随成长进化成不同的样子——美术就位后在 `config/creatures.ts` 加条目即可，抽蛋池/图鉴/稀有度标签都从这份配置派生，自动跟上。之前的 3/2/1 分级和「星岚龙 30 次反思里程碑解锁」暂时下线（`checkLegendaryUnlock` 通道保留在代码里，等未来有 legendary 生物时直接复用）。
+- **孵化流程（CJ 2026-08-10 改版，抽蛋制）**：按「抽一颗蛋」→ 抽的瞬间就确定蛋里是什么生物（对玩家保密到孵化）→ 星尘浇灌进度条（20⭐/次，攒满 60⭐ 孵化）。抽蛋池只有未拥有的生物，**每只生物永远只有一只，不会重复**；全部集齐后显示「都到齐了」。抽蛋免费、进度确定性推进、最终必集齐——不违反 PRD「不做付费随机抽取」的原则，随机只发生在「哪只先来」。抽蛋动画刻意收敛（蛋落巢晃两下），不做开箱式悬念。
 - **自定义任务模型**：一次性待办（不是每日重置的习惯打卡），每个任务只发一次星尘。
 - **蛋位数量**：先给 1 个（Free 档基础值），不引入没有解锁路径的「锁定第二蛋位」UI（订阅系统还没做）。
 - **专注计时**：倒计时本身不持久化（刷新=中断，不惩罚），但「今日已完成几次」持久化，避免刷新绕过每日上限。

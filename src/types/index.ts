@@ -53,12 +53,16 @@ export interface FocusSessionRecord {
 }
 
 export interface EggState {
-  rarity: 'common' | 'rare'
-  /** 已投入的星尘，达到该稀有度的孵化成本即孵出 */
+  /**
+   * 抽蛋时就确定的生物 slug——蛋本身决定孵出什么，孵化只是把它养出来。
+   * UI 上对玩家保密（显示「神秘的蛋」），孵化完成才揭晓。
+   */
+  species: string
+  /** 已投入的星尘，达到该生物的孵化成本即孵出 */
   progress: number
 }
 
-export const CURRENT_SCHEMA_VERSION = 3
+export const CURRENT_SCHEMA_VERSION = 4
 
 export interface AppState {
   schemaVersion: number

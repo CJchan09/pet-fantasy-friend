@@ -1,17 +1,18 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { CREATURES, CREATURES_BY_RARITY, creatureAsset } from '@/config/creatures'
+import { CREATURES, STARTER_SPECIES, creatureAsset } from '@/config/creatures'
 import { useGameStore } from '@/store/useGameStore'
 
 /**
- * 首次进入：从 3 只 Common 生物三选一 + 命名（Roadmap v0.5）。
+ * 首次进入：三选一 + 命名（PRD：从 3 只中选初始宠物）。
+ * 名单固定在 STARTER_SPECIES——不能按 rarity 过滤（现在 6 只全是 common，会把整个图鉴摆出来）。
  * 老版本（阶段一线上用户）已经在养宠物了，迁移时 hasChosenStarter 会被设为 true，不会看到这一页。
  */
 export function StarterPickerScreen() {
   const { t } = useTranslation()
   const chooseStarter = useGameStore((s) => s.chooseStarter)
 
-  const [selected, setSelected] = useState(CREATURES_BY_RARITY.common[0])
+  const [selected, setSelected] = useState(STARTER_SPECIES[0])
   const [name, setName] = useState(CREATURES[selected].defaultName)
 
   function handleSelect(species: string) {
@@ -33,7 +34,7 @@ export function StarterPickerScreen() {
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        {CREATURES_BY_RARITY.common.map((species) => {
+        {STARTER_SPECIES.map((species) => {
           const creature = CREATURES[species]
           const isSelected = species === selected
           return (

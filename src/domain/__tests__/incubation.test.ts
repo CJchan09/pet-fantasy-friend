@@ -2,34 +2,65 @@ import { describe, expect, it } from 'vitest'
 import {
   advanceEgg,
   checkLegendaryUnlock,
+  drawEggSpecies,
   eggCost,
-  isDuplicateHatch,
-  pickHatchSpecies,
-  startNewEgg,
+  isCollectionComplete,
+  unownedSpecies,
 } from '../incubation'
 import {
   EGG_ADVANCE_CHUNK,
   EGG_COMMON_COST,
-  EGG_RARE_COST,
   LEGENDARY_UNLOCK_REFLECTION_COUNT,
 } from '@/config/gameBalance'
-import { CREATURES_BY_RARITY } from '@/config/creatures'
+import { CREATURES } from '@/config/creatures'
 
-describe('eggCost / startNewEgg', () => {
-  it('普通蛋与稀有蛋成本不同', () => {
-    expect(eggCost('common')).toBe(EGG_COMMON_COST)
-    expect(eggCost('rare')).toBe(EGG_RARE_COST)
+const ALL_SPECIES = Object.keys(CREATURES)
+
+function ownedExcept(...notOwned: string[]): Record<string, boolean> {
+  return Object.fromEntries(
+    ALL_SPECIES.filter((s) => !notOwned.includes(s)).map((s) => [s, true]),
+  )
+}
+
+describe('drawEggSpecies 抽蛋（不重复）', () => {
+  it('只会抽到还没拥有的生物', () => {
+    const owned = ownedExcept('cloudsheep')
+    expect(drawEggSpecies(owned)).toBe('cloudsheep')
   })
 
-  it('新蛋进度从 0 开始', () => {
-    expect(startNewEgg('common')).toEqual({ rarity: 'common', progress: 0 })
+  it('全部集齐后返回 null', () => {
+    const owned = ownedExcept()
+    expect(drawEggSpecies(owned)).toBeNull()
+    expect(isCollectionComplete(owned)).toBe(true)
+  })
+
+  it('未拥有池随机抽取，结果始终落在池内', () => {
+    const owned = { mossbear: true }
+    for (let i = 0; i < 20; i++) {
+      const drawn = drawEggSpecies(owned)
+      expect(drawn).not.toBe('mossbear')
+      expect(ALL_SPECIES).toContain(drawn)
+    }
+  })
+
+  it('unownedSpecies 正确列出未拥有的生物', () => {
+    expect(unownedSpecies({})).toHaveLength(ALL_SPECIES.length)
+    expect(unownedSpecies(ownedExcept('spiritfox'))).toEqual(['spiritfox'])
   })
 })
 
-describe('advanceEgg', () => {
+describe('eggCost', () => {
+  it('当前全部生物都是 common，成本一致', () => {
+    for (const species of ALL_SPECIES) {
+      expect(eggCost(species)).toBe(EGG_COMMON_COST)
+    }
+  })
+})
+
+describe('advanceEgg 浇灌与孵化', () => {
   it('星尘足够时推进进度并扣星尘', () => {
-    const egg = startNewEgg('common')
-    const result = advanceEgg(egg, 1000, {})
+    const egg = { species: 'cloudsheep', progress: 0 }
+    const result = advanceEgg(egg, 1000)
     expect(result).not.toBeNull()
     expect(result?.egg?.progress).toBe(EGG_ADVANCE_CHUNK)
     expect(result?.stardustBalance).toBe(1000 - EGG_ADVANCE_CHUNK)
@@ -37,62 +68,21 @@ describe('advanceEgg', () => {
   })
 
   it('星尘不足时返回 null，不扣任何东西', () => {
-    const egg = startNewEgg('common')
-    expect(advanceEgg(egg, EGG_ADVANCE_CHUNK - 1, {})).toBeNull()
+    const egg = { species: 'cloudsheep', progress: 0 }
+    expect(advanceEgg(egg, EGG_ADVANCE_CHUNK - 1)).toBeNull()
   })
 
-  it('进度达到成本即孵化，蛋位清空', () => {
-    const egg = { rarity: 'common' as const, progress: EGG_COMMON_COST - EGG_ADVANCE_CHUNK }
-    const result = advanceEgg(egg, 1000, {})
+  it('进度达到成本即孵化，孵出的正是抽蛋时定好的生物', () => {
+    const egg = { species: 'mistdeer', progress: EGG_COMMON_COST - EGG_ADVANCE_CHUNK }
+    const result = advanceEgg(egg, 1000)
     expect(result?.egg).toBeNull()
-    expect(result?.hatchedSpecies).not.toBeNull()
-    expect(CREATURES_BY_RARITY.common).toContain(result?.hatchedSpecies)
-  })
-
-  it('进度不会超过成本上限（最后一次推进会被裁到刚好孵化）', () => {
-    const egg = { rarity: 'common' as const, progress: EGG_COMMON_COST - 5 }
-    const result = advanceEgg(egg, 1000, {})
-    expect(result?.egg).toBeNull()
+    expect(result?.hatchedSpecies).toBe('mistdeer')
   })
 })
 
-describe('pickHatchSpecies', () => {
-  it('优先给还没拥有的生物', () => {
-    const owned = Object.fromEntries(
-      CREATURES_BY_RARITY.common.slice(0, CREATURES_BY_RARITY.common.length - 1).map((s) => [s, true]),
-    )
-    const picked = pickHatchSpecies('common', owned)
-    expect(owned[picked]).toBeUndefined()
-  })
-
-  it('全部拥有时仍能返回一只（重复）', () => {
-    const owned = Object.fromEntries(CREATURES_BY_RARITY.common.map((s) => [s, true]))
-    const picked = pickHatchSpecies('common', owned)
-    expect(CREATURES_BY_RARITY.common).toContain(picked)
-  })
-})
-
-describe('isDuplicateHatch', () => {
-  it('已拥有的生物判定为重复', () => {
-    expect(isDuplicateHatch('mossbear', { mossbear: true })).toBe(true)
-    expect(isDuplicateHatch('mossbear', {})).toBe(false)
-  })
-})
-
-describe('checkLegendaryUnlock', () => {
-  const [legendary] = CREATURES_BY_RARITY.legendary
-
-  it('未达累计次数不解锁', () => {
-    expect(checkLegendaryUnlock(LEGENDARY_UNLOCK_REFLECTION_COUNT - 1, {})).toBeNull()
-  })
-
-  it('达到累计次数且未拥有时解锁', () => {
-    expect(checkLegendaryUnlock(LEGENDARY_UNLOCK_REFLECTION_COUNT, {})).toBe(legendary)
-  })
-
-  it('已拥有传说生物时不重复解锁', () => {
-    expect(
-      checkLegendaryUnlock(LEGENDARY_UNLOCK_REFLECTION_COUNT, { [legendary]: true }),
-    ).toBeNull()
+describe('checkLegendaryUnlock（当前没有 legendary 生物，通道保留给未来）', () => {
+  it('没有配置 legendary 生物时恒返回 null，即使达到里程碑次数', () => {
+    expect(checkLegendaryUnlock(LEGENDARY_UNLOCK_REFLECTION_COUNT, {})).toBeNull()
+    expect(checkLegendaryUnlock(LEGENDARY_UNLOCK_REFLECTION_COUNT + 100, {})).toBeNull()
   })
 })

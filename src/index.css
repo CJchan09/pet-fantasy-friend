@@ -28,6 +28,7 @@
 
   --animate-twinkle: twinkle 3.6s ease-in-out infinite;
   --animate-breathe: breathe 5s ease-in-out infinite;
+  --animate-egg-pop: egg-pop 1.1s cubic-bezier(0.2, 0.9, 0.3, 1.2);
 
   @keyframes twinkle {
     0%,
@@ -46,6 +47,27 @@
     }
     50% {
       transform: translateY(-4px) scale(1.008);
+    }
+  }
+
+  /* 抽蛋：蛋从上方落进巢里，弹一下再左右晃两下停稳 */
+  @keyframes egg-pop {
+    0% {
+      transform: translateY(-16px) scale(0.5);
+      opacity: 0;
+    }
+    45% {
+      transform: translateY(2px) scale(1.08);
+      opacity: 1;
+    }
+    62% {
+      transform: translateY(0) scale(0.96) rotate(-7deg);
+    }
+    80% {
+      transform: rotate(5deg);
+    }
+    100% {
+      transform: none;
     }
   }
 }
@@ -78,7 +100,8 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .animate-twinkle,
-  .animate-breathe {
+  .animate-breathe,
+  .animate-egg-pop {
     animation: none;
   }
 }

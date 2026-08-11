@@ -20,16 +20,18 @@
     "historyLink": "反思记录",
     "dexLink": "图鉴",
     "settingsLink": "设置",
-    "eggStartTitle": "开始孵化",
-    "eggStartCommon": "普通蛋 · {{cost}} ⭐",
-    "eggStartRare": "稀有蛋 · {{cost}} ⭐",
+    "eggDrawTitle": "孵化巢",
+    "eggDrawHint": "抽一颗蛋，遇见还没见过的伙伴",
+    "eggDrawButton": "抽一颗蛋",
+    "eggDrawnHint": "一颗蛋落进了巢里",
     "eggLabel": {
-      "common": "孵化中 · 普通蛋",
-      "rare": "孵化中 · 稀有蛋"
+      "mystery": "孵化中 · 神秘的蛋"
     },
     "eggRemaining": "还差 {{count}} ⭐",
     "eggAdvanceHint": "轻点浇灌 · 花费 {{cost}} ⭐",
     "eggAdvanceNotEnoughHint": "星尘不够，先去赚一点吧",
+    "collectionCompleteTitle": "伙伴都到齐了",
+    "collectionCompleteHint": "六只生物已全部集齐，新的伙伴以后会来",
     "animalChessButton": "斗兽棋",
     "animalChessHint": "赢一局 +10 ⭐ · 也能跟朋友对战"
   },
@@ -117,7 +119,13 @@
     "importButton": "导入存档",
     "importSuccess": "导入成功",
     "importError": "文件格式不对，导入失败",
-    "languageLabel": "语言 / Language"
+    "languageLabel": "语言 / Language",
+    "dangerTitle": "重新开始",
+    "dangerHint": "清除这台设备上的全部数据（星尘、反思记录、图鉴进度），重新选择初始伙伴",
+    "resetButton": "清除数据重新开始",
+    "resetConfirmHint": "确定吗？反思记录和宠物进度将全部清除，无法恢复。建议先导出一份存档备份",
+    "resetConfirmButton": "确认清除",
+    "resetCancelButton": "先不要"
   },
   "animalChess": {
     "title": "斗兽棋",
