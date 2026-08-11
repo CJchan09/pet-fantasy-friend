@@ -24,9 +24,6 @@
     "eggDrawHint": "抽一颗蛋，遇见还没见过的伙伴",
     "eggDrawButton": "抽一颗蛋",
     "eggDrawnHint": "一颗蛋落进了巢里",
-    "eggLabel": {
-      "mystery": "孵化中 · 神秘的蛋"
-    },
     "eggRemaining": "还差 {{count}} ⭐",
     "eggAdvanceHint": "轻点浇灌 · 花费 {{cost}} ⭐",
     "eggAdvanceNotEnoughHint": "星尘不够，先去赚一点吧",

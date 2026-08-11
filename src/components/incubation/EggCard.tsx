@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { CREATURES, eggAsset } from '@/config/creatures'
 import { useEggStore } from '@/store/useEggStore'
 
 const DRAW_ANIMATION_MS = 1200
 
 /**
  * 孵化卡片，三种状态：
- * 1. 没有蛋、还有生物没集齐 → 「抽一颗蛋」按钮（抽的瞬间生物已定，对玩家保密）
- * 2. 有蛋 → 可见进度条 + 浇灌按钮（确定性推进，PRD 原则 3）
+ * 1. 没有蛋、还有生物没集齐 → 「抽一颗蛋」按钮
+ * 2. 有蛋 → 对应生物的蛋美术 + 名字（抽的瞬间生物已定，直接告诉玩家是谁，不做悬念）+ 可见进度条 + 浇灌按钮（确定性推进，PRD 原则 3）
  * 3. 全部集齐 → 「都到齐了」的收尾状态
- * 蛋是 CSS 画的（渐变 + 圆角，照抄 handoff 稿写法），没有蛋的美术资源。
  * 抽蛋动画刻意收敛：蛋落进巢里晃两下，不做稀有度闪光/悬念累积那种开箱观感。
  */
 export function EggCard() {
@@ -69,9 +69,11 @@ export function EggCard() {
       className="flex items-center gap-4 rounded-[20px] bg-card px-5 py-4 text-left shadow-soft disabled:opacity-70"
     >
       <div className={`relative flex-shrink-0 ${justDrawn ? 'animate-egg-pop' : ''}`}>
-        <div
-          className="h-11 w-9 rounded-[50%_50%_48%_48%/58%_58%_44%_44%] [background:linear-gradient(160deg,#F2E9D5,#E0D3B4)] shadow-inner"
-          aria-hidden="true"
+        <img
+          src={eggAsset(egg.species)}
+          alt={t(CREATURES[egg.species].speciesKey)}
+          className="h-14 w-14 object-contain"
+          draggable={false}
         />
         {justDrawn && (
           <span
@@ -84,7 +86,7 @@ export function EggCard() {
       </div>
       <div className="flex flex-1 flex-col gap-1.5">
         <div className="flex items-center justify-between text-[13px]">
-          <span className="font-medium text-ink-800">{t('home.eggLabel.mystery')}</span>
+          <span className="font-medium text-ink-800">{t(CREATURES[egg.species].speciesKey)}</span>
           <span className="text-ink-400">{t('home.eggRemaining', { count: remaining })}</span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-[rgba(90,78,55,0.10)]">

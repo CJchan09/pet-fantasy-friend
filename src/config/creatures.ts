@@ -118,3 +118,11 @@ export function creatureAsset(
 ): string {
   return `${import.meta.env.BASE_URL}creatures/${species}_s${stage}_${state}.webp`
 }
+
+/**
+ * 蛋美术资产：由 scripts/convertEggAssets.mjs 从设计侧 PNG（../Image/Egg/）抠透明背景转出，
+ * 位于 public/eggs/。抽蛋时物种已定，所以孵化中直接显示对应生物的蛋（不是通用「神秘蛋」占位）。
+ */
+export function eggAsset(species: string): string {
+  return `${import.meta.env.BASE_URL}eggs/${species}.webp`
+}

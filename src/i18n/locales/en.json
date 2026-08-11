@@ -24,9 +24,6 @@
     "eggDrawHint": "Draw an egg — a friend you haven't met yet",
     "eggDrawButton": "Draw an egg",
     "eggDrawnHint": "An egg settled into the nest",
-    "eggLabel": {
-      "mystery": "Hatching · Mystery egg"
-    },
     "eggRemaining": "{{count}} ⭐ to go",
     "eggAdvanceHint": "Tap to nurture · costs {{cost}} ⭐",
     "eggAdvanceNotEnoughHint": "Not enough stardust yet — go earn some",
