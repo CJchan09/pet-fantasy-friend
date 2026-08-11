@@ -51,7 +51,8 @@
     "title": "Reflection history",
     "emptyHint": "No entries yet — write your first one",
     "stardustAwardedLabel": "✦ {{count}}",
-    "backButton": "Back"
+    "backButton": "Back",
+    "closeButton": "Close"
   },
   "mood": {
     "1": "Low",

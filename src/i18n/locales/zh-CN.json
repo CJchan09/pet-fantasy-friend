@@ -51,7 +51,8 @@
     "title": "反思记录",
     "emptyHint": "还没有记录，写下第一篇吧",
     "stardustAwardedLabel": "✦ {{count}}",
-    "backButton": "返回"
+    "backButton": "返回",
+    "closeButton": "关闭"
   },
   "mood": {
     "1": "低落",
