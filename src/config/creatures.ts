@@ -89,11 +89,11 @@ export const CREATURES: Record<string, CreatureDef> = {
 export const DEFAULT_SPECIES = 'mossbear'
 
 /**
- * 首次进入的三选一名单（PRD：从 3 只中选初始宠物）。
- * 以前用「rarity === common」过滤，但现在 6 只全是 common 会把整个图鉴都摆出来——
- * 起始选择和抽蛋池是两回事，剩下 3 只留给孵化系统慢慢遇见。
+ * 首次进入的起始名单（CJ 2026-08-11 改版：6 只里除星岚龙外全部 5 只都可选）。
+ * 星岚龙（stardragon）刻意不放进起始名单——它是留给抽蛋系统的「隐藏」生物，
+ * 只能在开局之后通过孵化遇见，营造「还有一只没见过」的悬念。
  */
-export const STARTER_SPECIES = ['mossbear', 'spiritfox', 'cloudsheep']
+export const STARTER_SPECIES = ['mossbear', 'spiritfox', 'cloudsheep', 'mistdeer', 'streamturtle']
 
 export const CREATURES_BY_RARITY: Record<CreatureRarity, string[]> = {
   common: Object.values(CREATURES)
