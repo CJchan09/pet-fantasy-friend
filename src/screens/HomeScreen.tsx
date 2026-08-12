@@ -9,6 +9,7 @@ import { useStardustStore } from '@/store/useStardustStore'
 import { useReflectionStore } from '@/store/useReflectionStore'
 import { useFocusStore } from '@/store/useFocusStore'
 import { useTaskStore } from '@/store/useTaskStore'
+import { useAnimalChessStore } from '@/store/useAnimalChessStore'
 
 interface HomeScreenProps {
   onOpenReflection: () => void
@@ -40,7 +41,8 @@ export function HomeScreen({
   const { balance } = useStardustStore()
   const { hasSubmittedToday } = useReflectionStore()
   const { sessionsToday, dailyLimit: focusDailyLimit } = useFocusStore()
-  const { tasks } = useTaskStore()
+  const { tasks, rewardedTodayCount, dailyRewardLimit } = useTaskStore()
+  const { winsToday, dailyLimit: chessDailyLimit, rewardPerWin } = useAnimalChessStore()
 
   const [joy, setJoy] = useState(false)
   const joyTimerRef = useRef<number | undefined>(undefined)
@@ -149,7 +151,9 @@ export function HomeScreen({
             >
               <span className="text-sm font-medium text-ink-700">{t('home.tasksButton')}</span>
               <span className="text-[10px] text-ink-400">
-                {t('home.tasksOpenHint', { count: openTaskCount })}
+                {rewardedTodayCount >= dailyRewardLimit
+                  ? t('home.tasksRewardCappedHint')
+                  : t('home.tasksOpenHint', { count: openTaskCount })}
               </span>
             </button>
           </div>
@@ -166,7 +170,15 @@ export function HomeScreen({
               <span className="text-sm font-medium text-ink-700">
                 {t('home.animalChessButton')}
               </span>
-              <span className="text-[10px] text-ink-400">{t('home.animalChessHint')}</span>
+              <span className="text-[10px] text-ink-400">
+                {winsToday >= chessDailyLimit
+                  ? t('home.animalChessLimitReachedHint')
+                  : t('home.animalChessTodayHint', {
+                      reward: rewardPerWin,
+                      count: winsToday,
+                      limit: chessDailyLimit,
+                    })}
+              </span>
             </div>
             <span className="flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] border-line text-base text-ink-400">
               ›

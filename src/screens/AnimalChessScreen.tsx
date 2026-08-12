@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useGameStore } from '@/store/useGameStore'
+import { useAnimalChessStore } from '@/store/useAnimalChessStore'
 import { isHumanWin, type AnimalChessResult } from '@/domain/animalChess'
 
 interface AnimalChessScreenProps {
@@ -30,7 +30,8 @@ function isGameOverMessage(data: unknown): data is GameOverMessage {
  */
 export function AnimalChessScreen({ onBack }: AnimalChessScreenProps) {
   const { t, i18n } = useTranslation()
-  const recordAnimalChessResult = useGameStore((s) => s.recordAnimalChessResult)
+  const { winsToday, dailyLimit, rewardPerWin, recordAnimalChessResult } = useAnimalChessStore()
+  const atDailyLimit = winsToday >= dailyLimit
   const [banner, setBanner] = useState<'rewarded' | 'won-no-reward' | null>(null)
   const bannerTimerRef = useRef<number | undefined>(undefined)
 
@@ -76,7 +77,14 @@ export function AnimalChessScreen({ onBack }: AnimalChessScreenProps) {
         >
           ←
         </button>
-        <h1 className="text-[15px] font-medium text-ink-900">{t('animalChess.title')}</h1>
+        <div className="flex flex-col">
+          <h1 className="text-[15px] font-medium text-ink-900">{t('animalChess.title')}</h1>
+          <span className="text-[11px] text-ink-400">
+            {atDailyLimit
+              ? t('animalChess.dailyLimitReachedHint')
+              : t('animalChess.todayHint', { count: winsToday, limit: dailyLimit, reward: rewardPerWin })}
+          </span>
+        </div>
       </header>
 
       {banner && (

@@ -17,6 +17,7 @@
     "focusSessionsHint": "今日 {{count}}/{{limit}} 次",
     "tasksButton": "任务",
     "tasksOpenHint": "{{count}} 项待完成",
+    "tasksRewardCappedHint": "今日星尘已领满 · 还能继续记事",
     "historyLink": "反思记录",
     "dexLink": "图鉴",
     "settingsLink": "设置",
@@ -30,7 +31,8 @@
     "collectionCompleteTitle": "伙伴都到齐了",
     "collectionCompleteHint": "六只生物已全部集齐，新的伙伴以后会来",
     "animalChessButton": "斗兽棋",
-    "animalChessHint": "赢一局 +10 ⭐ · 也能跟朋友对战"
+    "animalChessTodayHint": "赢一局 +{{reward}} ⭐ · 今日 {{count}}/{{limit}}",
+    "animalChessLimitReachedHint": "今日奖励已领完 · 也能纯玩跟朋友对战"
   },
   "reflection": {
     "questionGratitude": "今天有什么值得感恩的事？",
@@ -129,6 +131,8 @@
     "title": "斗兽棋",
     "backButton": "返回",
     "rewardedHint": "赢了！获得星尘奖励",
-    "wonNoRewardHint": "赢了！不过今日的奖励已经领完啦"
+    "wonNoRewardHint": "赢了！不过今日的奖励已经领完啦",
+    "todayHint": "赢一局 +{{reward}} ⭐ · 今日 {{count}}/{{limit}}",
+    "dailyLimitReachedHint": "今日的斗兽棋奖励已经领完了，明天再来"
   }
 }

@@ -17,6 +17,7 @@
     "focusSessionsHint": "{{count}}/{{limit}} today",
     "tasksButton": "Tasks",
     "tasksOpenHint": "{{count}} open",
+    "tasksRewardCappedHint": "Today's stardust is capped · keep jotting things down",
     "historyLink": "Reflection history",
     "dexLink": "Collection",
     "settingsLink": "Settings",
@@ -30,7 +31,8 @@
     "collectionCompleteTitle": "Everyone's here",
     "collectionCompleteHint": "All six creatures collected — new friends will arrive someday",
     "animalChessButton": "Jungle Chess",
-    "animalChessHint": "Win a match for +10 ⭐ · play a friend too"
+    "animalChessTodayHint": "Win a match for +{{reward}} ⭐ · {{count}}/{{limit}} today",
+    "animalChessLimitReachedHint": "Today's reward is used up · still fun to play a friend"
   },
   "reflection": {
     "questionGratitude": "What are you grateful for today?",
@@ -129,6 +131,8 @@
     "title": "Jungle Chess",
     "backButton": "Back",
     "rewardedHint": "You won! Stardust earned",
-    "wonNoRewardHint": "You won! But today's reward is already used up"
+    "wonNoRewardHint": "You won! But today's reward is already used up",
+    "todayHint": "Win a match for +{{reward}} ⭐ · {{count}}/{{limit}} today",
+    "dailyLimitReachedHint": "Today's Jungle Chess reward is used up — come back tomorrow"
   }
 }
