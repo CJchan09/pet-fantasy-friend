@@ -10,6 +10,7 @@ export function useEggStore() {
   const stardustBalance = useGameStore((s) => s.state.stardust.balance)
   const drawEgg = useGameStore((s) => s.drawEgg)
   const advanceEgg = useGameStore((s) => s.advanceEgg)
+  const renameCreature = useGameStore((s) => s.renameCreature)
 
   const collectionComplete = isCollectionComplete(ownedCreatures)
 
@@ -22,5 +23,6 @@ export function useEggStore() {
     canDraw: !egg && !collectionComplete,
     drawEgg,
     advanceEgg,
+    renameCreature,
   }
 }

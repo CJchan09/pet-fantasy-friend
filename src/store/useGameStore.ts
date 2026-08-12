@@ -49,7 +49,10 @@ interface GameStore {
   completeFocusSession: () => boolean
   /** 抽一颗蛋：抽的瞬间就定好蛋里的生物（未拥有池随机）；已有蛋或全部集齐时返回 false */
   drawEgg: () => boolean
-  advanceEgg: () => boolean
+  /** 返回刚孵化出的生物 slug（用于弹起名弹窗）；本次浇灌没有孵化出东西/星尘不够时返回 null */
+  advanceEgg: () => string | null
+  /** 孵化起名弹窗确认后调用，写入该生物的昵称 */
+  renameCreature: (species: string, nickname: string) => void
   /** 返回是否实际发了星尘（输了 / 今日奖励已领完时是 false，但输不扣分，state 不变） */
   recordAnimalChessResult: (result: AnimalChessResult) => boolean
   exportSave: () => string
@@ -129,7 +132,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
         const legendarySpecies = checkLegendaryUnlock(reflectionCount, ownedCreatures)
         if (legendarySpecies) {
-          ownedCreatures = { ...ownedCreatures, [legendarySpecies]: true }
+          ownedCreatures = {
+            ...ownedCreatures,
+            [legendarySpecies]: { nickname: CREATURES[legendarySpecies].defaultName },
+          }
         }
       } else {
         // 同日重复提交=编辑：只更新内容，不重复发放星尘（PRD 3.3.1 异常处理）
@@ -187,7 +193,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
         ...prev.state,
         pet: { name: name.trim() || CREATURES[species].defaultName, species, intimacy: 0, level: 1 },
         hasChosenStarter: true,
-        ownedCreatures: { ...prev.state.ownedCreatures, [species]: true },
+        ownedCreatures: {
+          ...prev.state.ownedCreatures,
+          [species]: { nickname: name.trim() || CREATURES[species].defaultName },
+        },
       }
       saveState(nextState)
       return { state: nextState }
@@ -283,16 +292,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
   advanceEgg: () => {
     const { state } = get()
     if (!state.egg) {
-      return false
+      return null
     }
     const result = advanceEggDomain(state.egg, state.stardust.balance)
     if (!result) {
-      return false
+      return null
     }
     set((prev) => {
-      // 抽蛋时已保证不重复（池子里只有未拥有的生物），孵化直接入图鉴即可
+      // 抽蛋时已保证不重复（池子里只有未拥有的生物），孵化直接入图鉴；
+      // 昵称先写生物原名占位，孵化起名弹窗确认后由 renameCreature 覆盖
       const ownedCreatures = result.hatchedSpecies
-        ? { ...prev.state.ownedCreatures, [result.hatchedSpecies]: true }
+        ? {
+            ...prev.state.ownedCreatures,
+            [result.hatchedSpecies]: { nickname: CREATURES[result.hatchedSpecies].defaultName },
+          }
         : prev.state.ownedCreatures
 
       const nextState: AppState = {
@@ -304,7 +317,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
       saveState(nextState)
       return { state: nextState }
     })
-    return true
+    return result.hatchedSpecies
+  },
+
+  renameCreature: (species, nickname) => {
+    set((prev) => {
+      if (!prev.state.ownedCreatures[species]) {
+        return prev
+      }
+      const trimmed = nickname.trim() || CREATURES[species].defaultName
+      const nextState: AppState = {
+        ...prev.state,
+        ownedCreatures: {
+          ...prev.state.ownedCreatures,
+          [species]: { nickname: trimmed },
+        },
+      }
+      saveState(nextState)
+      return { state: nextState }
+    })
   },
 
   recordAnimalChessResult: (result) => {

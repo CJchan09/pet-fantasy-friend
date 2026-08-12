@@ -15,7 +15,7 @@ beforeEach(() => {
 describe('localStorageAdapter', () => {
   it('没有存档时返回默认状态', () => {
     const state = loadState()
-    expect(state.schemaVersion).toBe(4)
+    expect(state.schemaVersion).toBe(5)
     expect(state.stardust.balance).toBe(0)
     expect(state.reflections).toEqual([])
     expect(state.hasChosenStarter).toBe(false)
@@ -36,11 +36,11 @@ describe('localStorageAdapter', () => {
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(legacyV1))
     const migrated = loadState()
-    expect(migrated.schemaVersion).toBe(4)
+    expect(migrated.schemaVersion).toBe(5)
     expect(migrated.hasChosenStarter).toBe(true)
     expect(migrated.stardust.balance).toBe(55)
     expect(migrated.pet.intimacy).toBe(30)
-    expect(migrated.ownedCreatures.mossbear).toBe(true)
+    expect(migrated.ownedCreatures.mossbear).toEqual({ nickname: '苔苔' })
     expect(migrated.tasks).toEqual([])
     expect(migrated.animalChessWins).toEqual([])
   })
@@ -62,6 +62,25 @@ describe('localStorageAdapter', () => {
     expect(typeof migrated.egg?.species).toBe('string')
     expect(migrated.egg?.species).not.toBe('mossbear') // 只会抽到未拥有的
     expect(migrated.egg?.progress).toBe(40) // 已投入的星尘不丢
+  })
+
+  it('v4 旧格式的 ownedCreatures（Record<string, boolean>）迁移为带昵称的记录', () => {
+    const legacyV4 = {
+      schemaVersion: 4,
+      pet: { name: '阿灵', species: 'spiritfox', intimacy: 10, level: 1 },
+      stardust: { balance: 0 },
+      reflections: [],
+      draftReflection: null,
+      hasChosenStarter: true,
+      ownedCreatures: { spiritfox: true, mossbear: true },
+      egg: null,
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(legacyV4))
+    const migrated = loadState()
+    expect(migrated.schemaVersion).toBe(5)
+    // 当前陪伴的生物用 pet.name 当默认昵称，其余用生物原名，不会全部变回「？？？」
+    expect(migrated.ownedCreatures.spiritfox).toEqual({ nickname: '阿灵' })
+    expect(migrated.ownedCreatures.mossbear).toEqual({ nickname: '苔苔' })
   })
 
   it('全新存档（真的没玩过）hasChosenStarter 为 false', () => {

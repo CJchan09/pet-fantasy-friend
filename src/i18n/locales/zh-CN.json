@@ -30,6 +30,10 @@
     "eggAdvanceNotEnoughHint": "星尘不够，先去赚一点吧",
     "collectionCompleteTitle": "伙伴都到齐了",
     "collectionCompleteHint": "六只生物已全部集齐，新的伙伴以后会来",
+    "hatchTitle": "你孵化出了 {{species}}！",
+    "hatchSubtitle": "要帮它取个名字吗？",
+    "hatchNameLabel": "给它取个名字",
+    "hatchConfirmButton": "确认",
     "animalChessButton": "斗兽棋",
     "animalChessTodayHint": "赢一局 +{{reward}} ⭐ · 今日 {{count}}/{{limit}}",
     "animalChessLimitReachedHint": "今日奖励已领完 · 也能纯玩跟朋友对战"

@@ -30,6 +30,10 @@
     "eggAdvanceNotEnoughHint": "Not enough stardust yet — go earn some",
     "collectionCompleteTitle": "Everyone's here",
     "collectionCompleteHint": "All six creatures collected — new friends will arrive someday",
+    "hatchTitle": "You hatched a {{species}}!",
+    "hatchSubtitle": "Want to give it a name?",
+    "hatchNameLabel": "Give it a name",
+    "hatchConfirmButton": "Confirm",
     "animalChessButton": "Jungle Chess",
     "animalChessTodayHint": "Win a match for +{{reward}} ⭐ · {{count}}/{{limit}} today",
     "animalChessLimitReachedHint": "Today's reward is used up · still fun to play a friend"

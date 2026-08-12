@@ -62,7 +62,12 @@ export interface EggState {
   progress: number
 }
 
-export const CURRENT_SCHEMA_VERSION = 4
+export const CURRENT_SCHEMA_VERSION = 5
+
+/** 已拥有生物的记录：key 存在即代表拥有，nickname 是孵化起名弹窗里确认的名字（默认用生物原名） */
+export interface OwnedCreatureRecord {
+  nickname: string
+}
 
 export interface AppState {
   schemaVersion: number
@@ -77,8 +82,8 @@ export interface AppState {
   tasks: TaskItem[]
   focusSessions: FocusSessionRecord[]
   egg: EggState | null
-  /** species -> 是否已拥有，图鉴用 */
-  ownedCreatures: Record<string, boolean>
+  /** species -> 拥有记录（含昵称），图鉴用 */
+  ownedCreatures: Record<string, OwnedCreatureRecord>
   /** 累计反思次数（不受编辑影响，只在首次提交时 +1），传说解锁判定用 */
   reflectionCount: number
   /** 存档首次创建时间，用于「使用满 7 天提示导出备份」（PRD 3.3.7） */

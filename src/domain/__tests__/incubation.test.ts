@@ -13,12 +13,13 @@ import {
   LEGENDARY_UNLOCK_REFLECTION_COUNT,
 } from '@/config/gameBalance'
 import { CREATURES } from '@/config/creatures'
+import type { OwnedCreatureRecord } from '@/types'
 
 const ALL_SPECIES = Object.keys(CREATURES)
 
-function ownedExcept(...notOwned: string[]): Record<string, boolean> {
+function ownedExcept(...notOwned: string[]): Record<string, OwnedCreatureRecord> {
   return Object.fromEntries(
-    ALL_SPECIES.filter((s) => !notOwned.includes(s)).map((s) => [s, true]),
+    ALL_SPECIES.filter((s) => !notOwned.includes(s)).map((s) => [s, { nickname: s }]),
   )
 }
 
@@ -35,7 +36,7 @@ describe('drawEggSpecies 抽蛋（不重复）', () => {
   })
 
   it('未拥有池随机抽取，结果始终落在池内', () => {
-    const owned = { mossbear: true }
+    const owned = { mossbear: { nickname: 'mossbear' } }
     for (let i = 0; i < 20; i++) {
       const drawn = drawEggSpecies(owned)
       expect(drawn).not.toBe('mossbear')

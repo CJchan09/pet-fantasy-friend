@@ -6,7 +6,7 @@ import {
 } from '@/config/gameBalance'
 import { CREATURES, CREATURES_BY_RARITY } from '@/config/creatures'
 import { canAffordStardust, spendStardust } from './stardust'
-import type { EggState } from '@/types'
+import type { EggState, OwnedCreatureRecord } from '@/types'
 
 /**
  * 孵化系统（CJ 2026-08-10 重做为「先抽蛋」流程）：
@@ -17,16 +17,16 @@ import type { EggState } from '@/types'
  *    最终全部都能集齐，且抽蛋本身免费）。
  */
 
-export function unownedSpecies(ownedCreatures: Record<string, boolean>): string[] {
+export function unownedSpecies(ownedCreatures: Record<string, OwnedCreatureRecord>): string[] {
   return Object.keys(CREATURES).filter((slug) => !ownedCreatures[slug])
 }
 
-export function isCollectionComplete(ownedCreatures: Record<string, boolean>): boolean {
+export function isCollectionComplete(ownedCreatures: Record<string, OwnedCreatureRecord>): boolean {
   return unownedSpecies(ownedCreatures).length === 0
 }
 
 /** 从未拥有的生物里随机抽一只；全部集齐时返回 null（UI 显示「都到齐了」状态） */
-export function drawEggSpecies(ownedCreatures: Record<string, boolean>): string | null {
+export function drawEggSpecies(ownedCreatures: Record<string, OwnedCreatureRecord>): string | null {
   const pool = unownedSpecies(ownedCreatures)
   if (pool.length === 0) {
     return null
@@ -75,7 +75,7 @@ export function advanceEgg(egg: EggState, stardustBalance: number): AdvanceEggRe
  */
 export function checkLegendaryUnlock(
   reflectionCount: number,
-  ownedCreatures: Record<string, boolean>,
+  ownedCreatures: Record<string, OwnedCreatureRecord>,
 ): string | null {
   if (reflectionCount < LEGENDARY_UNLOCK_REFLECTION_COUNT) {
     return null

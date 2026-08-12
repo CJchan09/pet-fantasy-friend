@@ -33,7 +33,8 @@ export function DexScreen({ onBack }: DexScreenProps) {
 
       <div className="grid grid-cols-2 gap-3">
         {Object.values(CREATURES).map((creature) => {
-          const owned = Boolean(ownedCreatures[creature.slug])
+          const ownedRecord = ownedCreatures[creature.slug]
+          const owned = Boolean(ownedRecord)
           return (
             <div
               key={creature.slug}
@@ -58,7 +59,7 @@ export function DexScreen({ onBack }: DexScreenProps) {
                 </span>
               </div>
               <span className="text-sm font-medium text-ink-700">
-                {owned ? t(creature.speciesKey) : t('dex.unknown')}
+                {owned ? ownedRecord.nickname : t('dex.unknown')}
               </span>
             </div>
           )

@@ -11,6 +11,7 @@ import {
   TASK_FREE_DAILY_ITEM_LIMIT,
   TASK_REWARD_PER_ITEM,
 } from '@/config/gameBalance'
+import { CREATURES } from '@/config/creatures'
 
 beforeEach(() => {
   localStorage.clear()
@@ -168,11 +169,32 @@ describe('useGameStore 孵化系统（抽蛋 → 浇灌 → 孵化）', () => {
     expect(drawnSpecies).toBeTruthy()
 
     const steps = Math.ceil(EGG_COMMON_COST / EGG_ADVANCE_CHUNK)
+    let lastResult: string | null = null
+    for (let i = 0; i < steps; i++) {
+      lastResult = useGameStore.getState().advanceEgg()
+    }
+    expect(useGameStore.getState().state.egg).toBeNull()
+    expect(lastResult).toBe(drawnSpecies)
+    expect(useGameStore.getState().state.ownedCreatures[drawnSpecies!]).toBeTruthy()
+  })
+
+  it('孵化完成时昵称先用生物原名占位，renameCreature 能覆盖成自定义名字', () => {
+    useGameStore.setState((prev) => ({
+      state: { ...prev.state, stardust: { balance: 1000 } },
+    }))
+    useGameStore.getState().drawEgg()
+    const drawnSpecies = useGameStore.getState().state.egg!.species
+
+    const steps = Math.ceil(EGG_COMMON_COST / EGG_ADVANCE_CHUNK)
     for (let i = 0; i < steps; i++) {
       useGameStore.getState().advanceEgg()
     }
-    expect(useGameStore.getState().state.egg).toBeNull()
-    expect(useGameStore.getState().state.ownedCreatures[drawnSpecies!]).toBe(true)
+    expect(useGameStore.getState().state.ownedCreatures[drawnSpecies].nickname).toBe(
+      CREATURES[drawnSpecies].defaultName,
+    )
+
+    useGameStore.getState().renameCreature(drawnSpecies, '小甜甜')
+    expect(useGameStore.getState().state.ownedCreatures[drawnSpecies].nickname).toBe('小甜甜')
   })
 
   it('已经有蛋时不能再抽（蛋位只有 1 个）', () => {
@@ -188,11 +210,11 @@ describe('useGameStore 孵化系统（抽蛋 → 浇灌 → 孵化）', () => {
       state: {
         ...prev.state,
         ownedCreatures: {
-          mossbear: true,
-          spiritfox: true,
-          cloudsheep: true,
-          mistdeer: true,
-          streamturtle: true,
+          mossbear: { nickname: 'mossbear' },
+          spiritfox: { nickname: 'spiritfox' },
+          cloudsheep: { nickname: 'cloudsheep' },
+          mistdeer: { nickname: 'mistdeer' },
+          streamturtle: { nickname: 'streamturtle' },
           // stardragon 是唯一没拥有的
         },
       },
@@ -206,12 +228,12 @@ describe('useGameStore 孵化系统（抽蛋 → 浇灌 → 孵化）', () => {
       state: {
         ...prev.state,
         ownedCreatures: {
-          mossbear: true,
-          spiritfox: true,
-          cloudsheep: true,
-          mistdeer: true,
-          streamturtle: true,
-          stardragon: true,
+          mossbear: { nickname: 'mossbear' },
+          spiritfox: { nickname: 'spiritfox' },
+          cloudsheep: { nickname: 'cloudsheep' },
+          mistdeer: { nickname: 'mistdeer' },
+          streamturtle: { nickname: 'streamturtle' },
+          stardragon: { nickname: 'stardragon' },
         },
       },
     }))
@@ -223,7 +245,7 @@ describe('useGameStore 孵化系统（抽蛋 → 浇灌 → 孵化）', () => {
     useGameStore.setState((prev) => ({ state: { ...prev.state, stardust: { balance: 0 } } }))
     useGameStore.getState().drawEgg()
     const advanced = useGameStore.getState().advanceEgg()
-    expect(advanced).toBe(false)
+    expect(advanced).toBeNull()
   })
 })
 
@@ -254,7 +276,7 @@ describe('useGameStore 起始宠物三选一', () => {
     expect(pet.species).toBe('spiritfox')
     expect(pet.name).toBe('阿灵')
     expect(hasChosenStarter).toBe(true)
-    expect(ownedCreatures.spiritfox).toBe(true)
+    expect(ownedCreatures.spiritfox).toEqual({ nickname: '阿灵' })
   })
 
   it('选择非默认生物时，默认生物不会残留在图鉴里（回归：createDefaultState 曾预置 mossbear 为已拥有）', () => {

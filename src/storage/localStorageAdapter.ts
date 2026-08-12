@@ -1,4 +1,4 @@
-import { CURRENT_SCHEMA_VERSION, type AppState, type EggState } from '@/types'
+import { CURRENT_SCHEMA_VERSION, type AppState, type EggState, type OwnedCreatureRecord } from '@/types'
 import { CREATURES, DEFAULT_SPECIES } from '@/config/creatures'
 import { unownedSpecies } from '@/domain/incubation'
 
@@ -44,6 +44,9 @@ export function createDefaultState(): AppState {
  * v3 -> v4：蛋从「按稀有度抽、孵化时才随机定生物」改为「抽蛋时就定生物」；
  *           旧格式的蛋（{rarity, progress}）迁移时就地抽一只未拥有的生物、保留已投入的进度，
  *           全部拥有时清空蛋位（旧逻辑下这种蛋孵出来也只是重复安慰奖）。
+ * v4 -> v5：ownedCreatures 从 Record<string, boolean> 改为 Record<string, {nickname}>，
+ *           配合孵化起名弹窗。旧格式（值是 true）迁移时用「当前陪伴宠物用 pet.name，其余用生物原名」
+ *           当默认昵称，避免全部生物在图鉴里突然变回「？？？」。
  */
 function migrate(raw: unknown): AppState {
   const state = raw as Partial<AppState> & { pet?: Partial<AppState['pet']> }
@@ -56,10 +59,28 @@ function migrate(raw: unknown): AppState {
     state.schemaVersion < 2 && state.hasChosenStarter === undefined
 
   const mergedPet = { ...defaults.pet, ...state.pet }
-  const ownedCreatures =
-    state.ownedCreatures && Object.keys(state.ownedCreatures).length > 0
-      ? state.ownedCreatures
-      : { [mergedPet.species]: true }
+
+  const rawOwnedCreatures = state.ownedCreatures as
+    | Record<string, boolean | OwnedCreatureRecord>
+    | undefined
+  const ownedCreatures: Record<string, OwnedCreatureRecord> =
+    rawOwnedCreatures && Object.keys(rawOwnedCreatures).length > 0
+      ? Object.fromEntries(
+          Object.entries(rawOwnedCreatures)
+            .filter(([, value]) => Boolean(value))
+            .map(([species, value]) => [
+              species,
+              typeof value === 'object'
+                ? value
+                : {
+                    nickname:
+                      species === mergedPet.species
+                        ? mergedPet.name
+                        : (CREATURES[species]?.defaultName ?? species),
+                  },
+            ]),
+        )
+      : { [mergedPet.species]: { nickname: mergedPet.name } }
 
   let egg: EggState | null = (state.egg as EggState | null | undefined) ?? null
   if (egg && typeof (egg as Partial<EggState>).species !== 'string') {
