@@ -68,12 +68,12 @@
     "5": "很好"
   },
   "creature": {
-    "mossbear": { "species": "森之幼熊", "scene": "苔原 · 黄昏" },
-    "spiritfox": { "species": "灵狐", "scene": "林间 · 晨光" },
-    "cloudsheep": { "species": "云绒羊", "scene": "云原 · 午后" },
-    "stardragon": { "species": "星岚幼龙", "scene": "星空 · 夜" },
-    "mistdeer": { "species": "雾角鹿", "scene": "雾林 · 清晨" },
-    "streamturtle": { "species": "溪石龟", "scene": "溪畔 · 午后" }
+    "mossbear": { "species": "森之幼熊", "scene": "苔原 · 黄昏", "defaultName": "苔苔" },
+    "spiritfox": { "species": "灵狐", "scene": "林间 · 晨光", "defaultName": "小灵" },
+    "cloudsheep": { "species": "云绒羊", "scene": "云原 · 午后", "defaultName": "云云" },
+    "stardragon": { "species": "星岚幼龙", "scene": "星空 · 夜", "defaultName": "星岚" },
+    "mistdeer": { "species": "雾角鹿", "scene": "雾林 · 清晨", "defaultName": "雾雾" },
+    "streamturtle": { "species": "溪石龟", "scene": "溪畔 · 午后", "defaultName": "溪溪" }
   },
   "login": {
     "signInSubtitle": "登录继续你的旅程",
@@ -119,6 +119,7 @@
     "title": "图鉴",
     "backButton": "返回",
     "unknown": "？？？",
+    "activeLabel": "出战中",
     "rarity": {
       "common": "普通",
       "rare": "稀有",

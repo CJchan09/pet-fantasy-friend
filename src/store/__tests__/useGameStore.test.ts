@@ -13,6 +13,7 @@ import {
 } from '@/config/gameBalance'
 import { CREATURES } from '@/config/creatures'
 import { useAuthStore } from '../useAuthStore'
+import i18n from '@/i18n'
 
 beforeEach(() => {
   localStorage.clear()
@@ -192,7 +193,7 @@ describe('useGameStore 孵化系统（抽蛋 → 浇灌 → 孵化）', () => {
       useGameStore.getState().advanceEgg()
     }
     expect(useGameStore.getState().state.ownedCreatures[drawnSpecies].nickname).toBe(
-      CREATURES[drawnSpecies].defaultName,
+      i18n.t(CREATURES[drawnSpecies].defaultNameKey),
     )
 
     useGameStore.getState().renameCreature(drawnSpecies, '小甜甜')
@@ -284,6 +285,41 @@ describe('useGameStore 起始宠物三选一', () => {
   it('选择非默认生物时，默认生物不会残留在图鉴里（回归：createDefaultState 曾预置 mossbear 为已拥有）', () => {
     useGameStore.getState().chooseStarter('spiritfox', '阿灵')
     expect(useGameStore.getState().state.ownedCreatures.mossbear).toBeUndefined()
+  })
+})
+
+describe('useGameStore 图鉴切换出战宠物', () => {
+  it('切到已拥有的另一只，pet.species/name 跟着变，亲密度等级保留', () => {
+    useGameStore.getState().chooseStarter('spiritfox', '阿灵')
+    useGameStore.getState().feedPet() // 攒一点亲密度，验证切换后不会被清零
+    const intimacyBefore = useGameStore.getState().state.pet.intimacy
+
+    // 手动塞一只 mistdeer 进图鉴，模拟已经孵化过（不需要真的走一遍抽蛋流程）
+    useGameStore.setState((prev) => ({
+      state: {
+        ...prev.state,
+        ownedCreatures: { ...prev.state.ownedCreatures, mistdeer: { nickname: '小乐乐' } },
+      },
+    }))
+
+    const switched = useGameStore.getState().switchActivePet('mistdeer')
+    expect(switched).toBe(true)
+    const { pet } = useGameStore.getState().state
+    expect(pet.species).toBe('mistdeer')
+    expect(pet.name).toBe('小乐乐')
+    expect(pet.intimacy).toBe(intimacyBefore)
+  })
+
+  it('切到没拥有的生物失败，不改变当前出战宠物', () => {
+    useGameStore.getState().chooseStarter('spiritfox', '阿灵')
+    const switched = useGameStore.getState().switchActivePet('stardragon')
+    expect(switched).toBe(false)
+    expect(useGameStore.getState().state.pet.species).toBe('spiritfox')
+  })
+
+  it('切到当前已经出战的那只也返回 false（无意义操作）', () => {
+    useGameStore.getState().chooseStarter('spiritfox', '阿灵')
+    expect(useGameStore.getState().switchActivePet('spiritfox')).toBe(false)
   })
 })
 

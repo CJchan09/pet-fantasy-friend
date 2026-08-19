@@ -2,7 +2,6 @@ import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PetScene } from '@/components/pet/PetScene'
 import { StardustBadge } from '@/components/stardust/StardustBadge'
-import { LanguageToggle } from '@/components/LanguageToggle'
 import { EggCard } from '@/components/incubation/EggCard'
 import { usePetStore } from '@/store/usePetStore'
 import { useStardustStore } from '@/store/useStardustStore'
@@ -86,7 +85,6 @@ export function HomeScreen({
           >
             ⚙
           </button>
-          <LanguageToggle />
         </div>
       </header>
 

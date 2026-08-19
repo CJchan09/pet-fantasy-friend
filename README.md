@@ -34,7 +34,7 @@ VITE_SUPABASE_ANON_KEY=你的 Supabase publishable/anon key
 ```bash
 npm install
 npm run dev       # 本地开发，默认 http://localhost:5173
-npm run test      # 跑 Vitest（domain / storage / store 单测，105 个）
+npm run test      # 跑 Vitest（domain / storage / store 单测，109 个）
 npm run build     # 生产构建（tsc -b && vite build）
 npm run preview   # 预览生产构建
 ```
@@ -91,12 +91,14 @@ supabase/schema.sql        # 数据库结构（profiles 表 + RLS + role 保护�
 - **专注计时**：倒计时本身不持久化（刷新=中断，不惩罚），但「今日已完成几次」持久化，避免刷新绕过每日上限。
 - **中文文案**：简体中文。
 - **斗兽棋奖励数值**：赢一局 10⭐、每日上限 2 次（20⭐/天）。这是 CJ 后加的需求，跟 PRD「星尘只能靠成长行为赚取」的原则有张力，数值刻意压低+设上限，详见上文「小游戏」小节的产品原则提醒。
-- **账号系统（CJ 2026-08-12 加，推翻 PRD「日记不出设备」原则）**：Supabase Auth（邮箱密码 + Google）+ Postgres。存档结构沿用现有「单一 JSON blob」模式——`profiles.game_state` 直接存整个 `AppState`，不拆表，改动面最小。未登录不能进游戏主流程。登录时的合并规则（`domain/cloudSync.ts` 的 `resolveLoginMerge`）：账号云端还没有存档（没做过起始三选一）→ 用本机的覆盖上去并立刻推送；账号云端已有进度 → 保留云端，本机不覆盖。**Admin 测试账号**：`profiles.role` 字段，只能在 Supabase SQL Editor 里手动设（`supabase/schema.sql` 底部有现成语句），前端/API 都改不了自己的 role（`prevent_role_self_update` 触发器挡住）——登录后跳过反思/任务/专注/斗兽棋全部每日上限，`SettingsScreen.tsx` 里还有一个「直接加星尘」的调试面板，仅 admin 可见。
+- **账号系统（CJ 2026-08-12 加，推翻 PRD「日记不出设备」原则）**：Supabase Auth（邮箱密码 + Google）+ Postgres。存档结构沿用现有「单一 JSON blob」模式——`profiles.game_state` 直接存整个 `AppState`，不拆表，改动面最小。未登录不能进游戏主流程。登录时的合并规则（`domain/cloudSync.ts` 的 `resolveLoginMerge`）：账号云端还没有存档（没做过起始三选一）→ 用本机的覆盖上去并立刻推送；账号云端已有进度 → 保留云端，本机不覆盖。**Admin 测试账号**：`profiles.role` 字段，只能在 Supabase SQL Editor 里手动设（`supabase/schema.sql` 底部有现成语句），前端/API 都改不了自己的 role（`prevent_role_self_update` 触发器挡住）——登录后跳过反思/任务/专注/斗兽棋全部每日上限，`SettingsScreen.tsx` 里还有一个「直接加星尘」的调试面板，仅 admin 可见。**重要**：`public.profiles` 表虽然有 RLS policy，但 SQL Editor 建表时不会自动带上 Postgres 的表级 GRANT（RLS 管「哪些行能看」，GRANT 管「这张表本身能不能被这个角色碰」，是两层不同的权限），`schema.sql` 已经补上 `grant select, insert, update on public.profiles to authenticated`，如果以后又出现「SQL Editor 里查都正常、前端却读不到」的情况，先怀疑这层。
+- **语言选择（CJ 2026-08-19 反馈改版）**：进 App 最前面先问语言（`LanguagePickerScreen.tsx`，登录墙之前），选完全程生效，不用在每个页面都摆语言切换 button——只在 Settings 保留一个。判断「要不要问」的标准是这台设备有没有出现过 `pet-fantasy-friend:save` 这个 localStorage key（`useLanguageGateStore.ts`），老用户不会被这一步打断。生物默认昵称（起始三选一/孵化起名弹窗的预填值）跟着改成 `config/creatures.ts` 的 `defaultNameKey`（i18n key，不是写死的中文字符串），语言切换后预填名字会跟着变；**已经确认的昵称是用户数据，不会因为切语言而重新翻译**。
+- **图鉴出战切换（CJ 2026-08-19 反馈新增）**：图鉴不只是收藏墙，点已拥有的生物格子可以把主界面出战的伙伴切成它（`switchActivePet`），出战中的那只用金色描边标出。当前实现：亲密度/等级是跟着「出战宠物」这个位置走的单一数值，不是每只生物各自累计——切换只改显示，不会把等级也带过去或清零；如果以后要做「每只生物独立成长」，`ownedCreatures` 需要连亲密度/等级一起存，是更大的数据结构改动，这次先不做。
+- **Bug 修复（2026-08-19）**：`localStorageAdapter.ts` 的 `migrate()` 曾经在 `ownedCreatures` 为空时无条件把 `pet.species`（起始三选一还没选完时只是占位的默认苔熊）记成已拥有，导致选别的生物开局后图鉴里仍会多出一只没养过的熊——修复为只在真的选过起始宠物（`hasChosenStarter===true` 或 legacy v1 存档）时才生效这条兜底逻辑。
 
 ## 还没做（v0.5 之后 / 本次范围之外）
 
 - **进化 2/3 阶段视觉**——设计侧只交付了 S1 美术，等级会涨但外观暂时不随进化阶段变化
-- **出战宠物切换**——孵化出的新生物只进图鉴收藏，不能设为主界面陪伴对象
 - **周回顾报告**（v1.0 / P1）——本地生成 + 导出图片，纯代码可做，还没做
 - **付费墙 / 订阅**（v1.0 / P1）——需要先注册 Merchant of Record 账号（如 Lemon Squeezy）并决定定价，这部分需要 CJ 先做账号与定价决定
 - **落地页、正式埋点**（v1.0 / P1）

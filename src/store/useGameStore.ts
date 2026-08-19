@@ -34,6 +34,12 @@ import {
 import { FEED_STARDUST_COST, EGG_ADVANCE_CHUNK } from '@/config/gameBalance'
 import { CREATURES } from '@/config/creatures'
 import { useAuthStore } from './useAuthStore'
+import i18n from '@/i18n'
+
+/** 生物默认昵称跟着当前语言走（起名前的预填值，不是已确认的用户数据） */
+function defaultNickname(species: string): string {
+  return i18n.t(CREATURES[species].defaultNameKey)
+}
 
 /** Admin 测试账号（Supabase profiles.role，见 supabase/schema.sql）跳过全部每日上限 */
 function isAdminUser(): boolean {
@@ -51,6 +57,8 @@ interface GameStore {
   /** Admin 测试专用：直接加星尘，不走任何赚取入口。非 admin 账号调用直接返回 false，不生效 */
   adminAddStardust: (amount: number) => boolean
   chooseStarter: (species: string, name: string) => void
+  /** 图鉴里切换出战宠物：只能切到已拥有的生物，切到当前已经在出战的那只也算失败（无意义操作） */
+  switchActivePet: (species: string) => boolean
   addTask: (label: string) => void
   removeTask: (id: string) => void
   toggleTask: (id: string) => void
@@ -145,7 +153,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         if (legendarySpecies) {
           ownedCreatures = {
             ...ownedCreatures,
-            [legendarySpecies]: { nickname: CREATURES[legendarySpecies].defaultName },
+            [legendarySpecies]: { nickname: defaultNickname(legendarySpecies) },
           }
         }
       } else {
@@ -217,16 +225,35 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set((prev) => {
       const nextState: AppState = {
         ...prev.state,
-        pet: { name: name.trim() || CREATURES[species].defaultName, species, intimacy: 0, level: 1 },
+        pet: { name: name.trim() || defaultNickname(species), species, intimacy: 0, level: 1 },
         hasChosenStarter: true,
         ownedCreatures: {
           ...prev.state.ownedCreatures,
-          [species]: { nickname: name.trim() || CREATURES[species].defaultName },
+          [species]: { nickname: name.trim() || defaultNickname(species) },
         },
       }
       saveState(nextState)
       return { state: nextState }
     })
+  },
+
+  switchActivePet: (species) => {
+    const { state } = get()
+    const owned = state.ownedCreatures[species]
+    if (!owned || species === state.pet.species) {
+      return false
+    }
+    set((prev) => {
+      const nextState: AppState = {
+        ...prev.state,
+        // 亲密度/等级沿用同一份数值，不按生物分开算——出战切换只改「显示谁」，
+        // 不是重新养一只新的；以后如果要做「每只生物独立成长」，这里要连 ownedCreatures 一起改数据结构
+        pet: { ...prev.state.pet, species, name: owned.nickname },
+      }
+      saveState(nextState)
+      return { state: nextState }
+    })
+    return true
   },
 
   addTask: (label) => {
@@ -334,7 +361,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const ownedCreatures = result.hatchedSpecies
         ? {
             ...prev.state.ownedCreatures,
-            [result.hatchedSpecies]: { nickname: CREATURES[result.hatchedSpecies].defaultName },
+            [result.hatchedSpecies]: { nickname: defaultNickname(result.hatchedSpecies) },
           }
         : prev.state.ownedCreatures
 
@@ -355,7 +382,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (!prev.state.ownedCreatures[species]) {
         return prev
       }
-      const trimmed = nickname.trim() || CREATURES[species].defaultName
+      const trimmed = nickname.trim() || defaultNickname(species)
       const nextState: AppState = {
         ...prev.state,
         ownedCreatures: {

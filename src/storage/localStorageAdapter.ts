@@ -1,6 +1,7 @@
 import { CURRENT_SCHEMA_VERSION, type AppState, type EggState, type OwnedCreatureRecord } from '@/types'
 import { CREATURES, DEFAULT_SPECIES } from '@/config/creatures'
 import { unownedSpecies } from '@/domain/incubation'
+import i18n from '@/i18n'
 
 /**
  * 全部数据只存 localStorage，不发起任何网络请求（PRD 5.1 / 隐私红线）。
@@ -11,7 +12,7 @@ export function createDefaultState(): AppState {
   return {
     schemaVersion: CURRENT_SCHEMA_VERSION,
     pet: {
-      name: CREATURES[DEFAULT_SPECIES].defaultName,
+      name: i18n.t(CREATURES[DEFAULT_SPECIES].defaultNameKey),
       species: DEFAULT_SPECIES,
       intimacy: 0,
       level: 1,
@@ -47,6 +48,9 @@ export function createDefaultState(): AppState {
  * v4 -> v5：ownedCreatures 从 Record<string, boolean> 改为 Record<string, {nickname}>，
  *           配合孵化起名弹窗。旧格式（值是 true）迁移时用「当前陪伴宠物用 pet.name，其余用生物原名」
  *           当默认昵称，避免全部生物在图鉴里突然变回「？？？」。
+ * 修复（2026-08-19 CJ 反馈）：ownedCreatures 为空时曾经无条件把 mergedPet.species 记成已拥有，
+ * 结果在「起始三选一还没选完」（pet.species 只是默认占位的苔熊）时也会误把苔熊算进图鉴——
+ * 现在这条兜底只在「确实已经选过起始宠物」（legacy v1 或 hasChosenStarter===true）时才生效。
  */
 function migrate(raw: unknown): AppState {
   const state = raw as Partial<AppState> & { pet?: Partial<AppState['pet']> }
@@ -59,6 +63,7 @@ function migrate(raw: unknown): AppState {
     state.schemaVersion < 2 && state.hasChosenStarter === undefined
 
   const mergedPet = { ...defaults.pet, ...state.pet }
+  const hasStarter = isLegacyV1WithoutStarterFlag || state.hasChosenStarter === true
 
   const rawOwnedCreatures = state.ownedCreatures as
     | Record<string, boolean | OwnedCreatureRecord>
@@ -76,11 +81,13 @@ function migrate(raw: unknown): AppState {
                     nickname:
                       species === mergedPet.species
                         ? mergedPet.name
-                        : (CREATURES[species]?.defaultName ?? species),
+                        : (CREATURES[species] ? i18n.t(CREATURES[species].defaultNameKey) : species),
                   },
             ]),
         )
-      : { [mergedPet.species]: { nickname: mergedPet.name } }
+      : hasStarter
+        ? { [mergedPet.species]: { nickname: mergedPet.name } }
+        : {}
 
   let egg: EggState | null = (state.egg as EggState | null | undefined) ?? null
   if (egg && typeof (egg as Partial<EggState>).species !== 'string') {

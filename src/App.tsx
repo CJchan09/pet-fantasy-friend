@@ -9,8 +9,10 @@ import { DexScreen } from '@/screens/DexScreen'
 import { SettingsScreen } from '@/screens/SettingsScreen'
 import { AnimalChessScreen } from '@/screens/AnimalChessScreen'
 import { LoginScreen } from '@/screens/LoginScreen'
+import { LanguagePickerScreen } from '@/screens/LanguagePickerScreen'
 import { useGameStore } from '@/store/useGameStore'
 import { useAuthStore } from '@/store/useAuthStore'
+import { useLanguageGateStore } from '@/store/useLanguageGateStore'
 import { initCloudSync } from '@/lib/cloudSync'
 
 type Screen =
@@ -30,10 +32,15 @@ function App() {
   const [screen, setScreen] = useState<Screen>('home')
   const hasChosenStarter = useGameStore((s) => s.state.hasChosenStarter)
   const { user, authReady, profileReady } = useAuthStore()
+  const hasChosenLanguage = useLanguageGateStore((s) => s.hasChosenLanguage)
 
   useEffect(() => {
     initCloudSync()
   }, [])
+
+  if (!hasChosenLanguage) {
+    return <LanguagePickerScreen />
+  }
 
   if (!authReady) {
     return null // 第一次 session 检查很快，不值得为这一瞬间加个专门的加载态

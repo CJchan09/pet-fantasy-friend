@@ -49,7 +49,7 @@ export function EggCard() {
     const hatched = advanceEgg()
     if (hatched) {
       setHatchedSpecies(hatched)
-      setNameInput(CREATURES[hatched].defaultName)
+      setNameInput(t(CREATURES[hatched].defaultNameKey))
     }
   }
 

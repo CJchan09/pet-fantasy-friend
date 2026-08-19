@@ -7,6 +7,8 @@ import {
   loadState,
   saveState,
 } from '../localStorageAdapter'
+import { CREATURES } from '@/config/creatures'
+import i18n from '@/i18n'
 
 beforeEach(() => {
   localStorage.clear()
@@ -80,7 +82,27 @@ describe('localStorageAdapter', () => {
     expect(migrated.schemaVersion).toBe(5)
     // 当前陪伴的生物用 pet.name 当默认昵称，其余用生物原名，不会全部变回「？？？」
     expect(migrated.ownedCreatures.spiritfox).toEqual({ nickname: '阿灵' })
-    expect(migrated.ownedCreatures.mossbear).toEqual({ nickname: '苔苔' })
+    expect(migrated.ownedCreatures.mossbear).toEqual({
+      nickname: i18n.t(CREATURES.mossbear.defaultNameKey),
+    })
+  })
+
+  it('回归（2026-08-19 CJ 反馈）：还没选起始宠物时，迁移不会把默认占位生物误标成已拥有', () => {
+    // 起始三选一还没选完时，schemaVersion 已经是最新但 hasChosenStarter 明确是 false、
+    // ownedCreatures 是空的——pet.species 这时候只是占位的默认值（苔熊），不代表真的拥有它
+    const midOnboarding = {
+      schemaVersion: 5,
+      pet: { name: '苔苔', species: 'mossbear', intimacy: 0, level: 1 },
+      stardust: { balance: 0 },
+      reflections: [],
+      draftReflection: null,
+      hasChosenStarter: false,
+      ownedCreatures: {},
+      egg: null,
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(midOnboarding))
+    const migrated = loadState()
+    expect(migrated.ownedCreatures).toEqual({})
   })
 
   it('全新存档（真的没玩过）hasChosenStarter 为 false', () => {

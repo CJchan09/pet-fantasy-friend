@@ -25,8 +25,11 @@ export interface CreatureDef {
   speciesKey: string
   /** i18n key：场景氛围标签（如 苔原 · 黄昏） */
   sceneKey: string
-  /** 默认昵称（用户数据，起始三选一时可自定义覆盖） */
-  defaultName: string
+  /**
+   * i18n key：默认昵称，起始三选一/孵化起名弹窗预填这个值（可自定义覆盖，一旦确认就是用户数据，
+   * 不再跟着语言切换重新翻译——CJ 2026-08-19 反馈明确要求「改名字是另一回事」）。
+   */
+  defaultNameKey: string
   rarity: CreatureRarity
   /**
    * 进化形态数量。1 = 只有一个样子（当前所有 common）；
@@ -40,7 +43,7 @@ export const CREATURES: Record<string, CreatureDef> = {
     slug: 'mossbear',
     speciesKey: 'creature.mossbear.species',
     sceneKey: 'creature.mossbear.scene',
-    defaultName: '苔苔',
+    defaultNameKey: 'creature.mossbear.defaultName',
     rarity: 'common',
     maxStage: 1,
   },
@@ -48,7 +51,7 @@ export const CREATURES: Record<string, CreatureDef> = {
     slug: 'spiritfox',
     speciesKey: 'creature.spiritfox.species',
     sceneKey: 'creature.spiritfox.scene',
-    defaultName: '小灵',
+    defaultNameKey: 'creature.spiritfox.defaultName',
     rarity: 'common',
     maxStage: 1,
   },
@@ -56,7 +59,7 @@ export const CREATURES: Record<string, CreatureDef> = {
     slug: 'cloudsheep',
     speciesKey: 'creature.cloudsheep.species',
     sceneKey: 'creature.cloudsheep.scene',
-    defaultName: '云云',
+    defaultNameKey: 'creature.cloudsheep.defaultName',
     rarity: 'common',
     maxStage: 1,
   },
@@ -64,7 +67,7 @@ export const CREATURES: Record<string, CreatureDef> = {
     slug: 'mistdeer',
     speciesKey: 'creature.mistdeer.species',
     sceneKey: 'creature.mistdeer.scene',
-    defaultName: '雾雾',
+    defaultNameKey: 'creature.mistdeer.defaultName',
     rarity: 'common',
     maxStage: 1,
   },
@@ -72,7 +75,7 @@ export const CREATURES: Record<string, CreatureDef> = {
     slug: 'streamturtle',
     speciesKey: 'creature.streamturtle.species',
     sceneKey: 'creature.streamturtle.scene',
-    defaultName: '溪溪',
+    defaultNameKey: 'creature.streamturtle.defaultName',
     rarity: 'common',
     maxStage: 1,
   },
@@ -80,7 +83,7 @@ export const CREATURES: Record<string, CreatureDef> = {
     slug: 'stardragon',
     speciesKey: 'creature.stardragon.species',
     sceneKey: 'creature.stardragon.scene',
-    defaultName: '星岚',
+    defaultNameKey: 'creature.stardragon.defaultName',
     rarity: 'common',
     maxStage: 1,
   },

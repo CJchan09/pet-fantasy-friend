@@ -13,11 +13,11 @@ export function StarterPickerScreen() {
   const chooseStarter = useGameStore((s) => s.chooseStarter)
 
   const [selected, setSelected] = useState(STARTER_SPECIES[0])
-  const [name, setName] = useState(CREATURES[selected].defaultName)
+  const [name, setName] = useState(t(CREATURES[STARTER_SPECIES[0]].defaultNameKey))
 
   function handleSelect(species: string) {
     setSelected(species)
-    setName(CREATURES[species].defaultName)
+    setName(t(CREATURES[species].defaultNameKey))
   }
 
   function handleConfirm() {

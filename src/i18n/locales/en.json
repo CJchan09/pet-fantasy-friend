@@ -68,12 +68,12 @@
     "5": "Great"
   },
   "creature": {
-    "mossbear": { "species": "Forest Cub", "scene": "Mossy tundra · Dusk" },
-    "spiritfox": { "species": "Spirit Fox", "scene": "Woodland · Dawn" },
-    "cloudsheep": { "species": "Cloud Sheep", "scene": "Cloud plains · Afternoon" },
-    "stardragon": { "species": "Star Dragonet", "scene": "Starfield · Night" },
-    "mistdeer": { "species": "Mist Deer", "scene": "Misty forest · Morning" },
-    "streamturtle": { "species": "Stream Turtle", "scene": "Creekside · Afternoon" }
+    "mossbear": { "species": "Forest Cub", "scene": "Mossy tundra · Dusk", "defaultName": "Mossy" },
+    "spiritfox": { "species": "Spirit Fox", "scene": "Woodland · Dawn", "defaultName": "Wisp" },
+    "cloudsheep": { "species": "Cloud Sheep", "scene": "Cloud plains · Afternoon", "defaultName": "Cloudy" },
+    "stardragon": { "species": "Star Dragonet", "scene": "Starfield · Night", "defaultName": "Nova" },
+    "mistdeer": { "species": "Mist Deer", "scene": "Misty forest · Morning", "defaultName": "Misty" },
+    "streamturtle": { "species": "Stream Turtle", "scene": "Creekside · Afternoon", "defaultName": "Brook" }
   },
   "login": {
     "signInSubtitle": "Sign in to continue your journey",
@@ -119,6 +119,7 @@
     "title": "Collection",
     "backButton": "Back",
     "unknown": "???",
+    "activeLabel": "Active",
     "rarity": {
       "common": "Common",
       "rare": "Rare",
