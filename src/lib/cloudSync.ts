@@ -16,12 +16,22 @@ async function pullAndMerge(userId: string) {
     .from('profiles')
     .select('role, game_state')
     .eq('id', userId)
-    .single()
+    .maybeSingle()
 
   if (error) {
     console.error('[cloudSync] 拉取云端存档失败', error)
     useAuthStore.setState({ profileReady: true })
     return
+  }
+
+  // 正常情况下 supabase/schema.sql 里的 handle_new_user 触发器会在注册时自动建好这一行；
+  // 万一触发器没接上（比如账号是在这条触发器建好之前注册的），这里兜底建一行，
+  // 不然后面的 pushToCloud 用 update 会一直静默匹配不到任何行，云端同步就永久卡死。
+  if (!data) {
+    const { error: insertError } = await supabase.from('profiles').insert({ id: userId })
+    if (insertError) {
+      console.error('[cloudSync] 兜底创建 profiles 行失败', insertError)
+    }
   }
 
   const cloudState =
