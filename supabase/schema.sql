@@ -14,6 +14,12 @@ create table if not exists public.profiles (
 
 alter table public.profiles enable row level security;
 
+-- RLS policy 只管「哪些行能看」，管不了「这张表本身能不能被这个角色碰」——
+-- 那一层是 Postgres 的 GRANT，两者是分开的，缺了这行会报 42501 permission denied，
+-- 现象是 SQL Editor 里查什么都正常（管理员权限跑的），但前端用普通登录用户去查就直接被拦在最外层。
+grant usage on schema public to authenticated;
+grant select, insert, update on public.profiles to authenticated;
+
 drop policy if exists "profiles_select_own" on public.profiles;
 create policy "profiles_select_own"
   on public.profiles for select
