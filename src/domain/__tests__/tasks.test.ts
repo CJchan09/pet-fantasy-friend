@@ -72,6 +72,19 @@ describe('completeTask 完成与每日上限', () => {
     expect(canRewardMoreTasksToday(TASK_FREE_DAILY_ITEM_LIMIT)).toBe(false)
   })
 
+  it('isAdmin=true 时即使已达上限也能继续领（Admin 测试账号跳过每日上限）', () => {
+    expect(canRewardMoreTasksToday(TASK_FREE_DAILY_ITEM_LIMIT, true)).toBe(true)
+    const rewardedToday = makeTasks(TASK_FREE_DAILY_ITEM_LIMIT)
+    const newTask = createTask('admin 专属第六项')
+    const { stardustEarned } = completeTask(
+      [...rewardedToday, newTask],
+      newTask.id,
+      TODAY,
+      true,
+    )
+    expect(stardustEarned).toBe(TASK_REWARD_PER_ITEM)
+  })
+
   it('countTasksRewardedToday 只统计当天发放过星尘的任务', () => {
     const todayTasks = makeTasks(2, { rewardedDate: TODAY })
     const yesterdayTasks = makeTasks(3, { rewardedDate: '2026-08-04' })

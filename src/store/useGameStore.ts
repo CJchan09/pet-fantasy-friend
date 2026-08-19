@@ -33,6 +33,12 @@ import {
 } from '@/domain/animalChess'
 import { FEED_STARDUST_COST, EGG_ADVANCE_CHUNK } from '@/config/gameBalance'
 import { CREATURES } from '@/config/creatures'
+import { useAuthStore } from './useAuthStore'
+
+/** Admin 测试账号（Supabase profiles.role，见 supabase/schema.sql）跳过全部每日上限 */
+function isAdminUser(): boolean {
+  return useAuthStore.getState().role === 'admin'
+}
 
 interface GameStore {
   state: AppState
@@ -42,6 +48,8 @@ interface GameStore {
   saveDraft: (answers: ReflectionAnswers, mood?: MoodValue) => void
   submitReflection: (answers: ReflectionAnswers, mood?: MoodValue) => void
   feedPet: () => boolean
+  /** Admin 测试专用：直接加星尘，不走任何赚取入口。非 admin 账号调用直接返回 false，不生效 */
+  adminAddStardust: (amount: number) => boolean
   chooseStarter: (species: string, name: string) => void
   addTask: (label: string) => void
   removeTask: (id: string) => void
@@ -103,32 +111,35 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return
     }
     const today = getLocalDateKey()
+    const isAdmin = isAdminUser()
     set((prev) => {
       const existingIndex = prev.state.reflections.findIndex(
         (entry) => entry.date === today,
       )
-      const isFirstSubmissionToday = existingIndex === -1
+      const hasExistingToday = existingIndex !== -1
+      // 正常用户只有首次提交才发星尘（PRD 3.3.1 异常处理：同日重复提交=编辑，不重复发放）；
+      // admin 测试账号每次提交都当作可以领（跳过每日上限），但依旧更新同一天的那条记录，不重复插入
+      const shouldReward = !hasExistingToday || isAdmin
 
       let reflections = prev.state.reflections
       let stardustBalance = prev.state.stardust.balance
       let reflectionCount = prev.state.reflectionCount
       let ownedCreatures = prev.state.ownedCreatures
 
-      if (isFirstSubmissionToday) {
-        // 首次提交：按填写题数发放星尘
+      if (shouldReward) {
         const reward = calculateReflectionReward(answers)
         stardustBalance = earnStardust(stardustBalance, reward)
         reflectionCount += 1
-        reflections = [
-          ...reflections,
-          {
-            date: today,
-            answers,
-            mood,
-            stardustAwarded: reward,
-            updatedAt: new Date().toISOString(),
-          },
-        ].sort((a, b) => (a.date < b.date ? 1 : -1))
+        const entry = {
+          date: today,
+          answers,
+          mood,
+          stardustAwarded: reward,
+          updatedAt: new Date().toISOString(),
+        }
+        reflections = hasExistingToday
+          ? reflections.map((e, index) => (index === existingIndex ? entry : e))
+          : [...reflections, entry].sort((a, b) => (a.date < b.date ? 1 : -1))
 
         const legendarySpecies = checkLegendaryUnlock(reflectionCount, ownedCreatures)
         if (legendarySpecies) {
@@ -138,7 +149,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           }
         }
       } else {
-        // 同日重复提交=编辑：只更新内容，不重复发放星尘（PRD 3.3.1 异常处理）
+        // 同日重复提交=编辑：只更新内容，不重复发放星尘
         reflections = reflections.map((entry, index) =>
           index === existingIndex
             ? {
@@ -158,7 +169,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         draftReflection: null,
         reflectionCount,
         ownedCreatures,
-        ...withGrowthTimestamp(prev.state, isFirstSubmissionToday),
+        ...withGrowthTimestamp(prev.state, shouldReward),
       }
       saveState(nextState)
       return { state: nextState }
@@ -180,6 +191,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
           intimacy: result.intimacy,
           level: result.level,
         },
+      }
+      saveState(nextState)
+      return { state: nextState }
+    })
+    return true
+  },
+
+  adminAddStardust: (amount) => {
+    if (!isAdminUser() || !Number.isFinite(amount) || amount <= 0) {
+      return false
+    }
+    set((prev) => {
+      const nextState: AppState = {
+        ...prev.state,
+        stardust: { balance: earnStardust(prev.state.stardust.balance, Math.floor(amount)) },
       }
       saveState(nextState)
       return { state: nextState }
@@ -241,7 +267,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         return { state: nextState }
       }
 
-      const { tasks, stardustEarned } = completeTaskDomain(prev.state.tasks, id)
+      const { tasks, stardustEarned } = completeTaskDomain(prev.state.tasks, id, getLocalDateKey(), isAdminUser())
       const nextState: AppState = {
         ...prev.state,
         tasks,
@@ -255,7 +281,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   completeFocusSession: () => {
     const { state } = get()
-    const { sessions, stardustEarned } = completeFocusSessionDomain(state.focusSessions)
+    const { sessions, stardustEarned } = completeFocusSessionDomain(
+      state.focusSessions,
+      getLocalDateKey(),
+      isAdminUser(),
+    )
     if (stardustEarned === 0) {
       return false
     }
@@ -343,7 +373,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return false // 输了不扣分，也没有别的副作用——直接不做任何事
     }
     const { state } = get()
-    const { wins, stardustEarned } = recordAnimalChessWin(state.animalChessWins)
+    const { wins, stardustEarned } = recordAnimalChessWin(
+      state.animalChessWins,
+      getLocalDateKey(),
+      isAdminUser(),
+    )
     if (stardustEarned === 0) {
       return false // 赢了，但今日奖励已经领完，不再重复给
     }

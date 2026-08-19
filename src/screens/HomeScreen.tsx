@@ -41,8 +41,8 @@ export function HomeScreen({
   const { balance } = useStardustStore()
   const { hasSubmittedToday } = useReflectionStore()
   const { sessionsToday, dailyLimit: focusDailyLimit } = useFocusStore()
-  const { tasks, rewardedTodayCount, dailyRewardLimit } = useTaskStore()
-  const { winsToday, dailyLimit: chessDailyLimit, rewardPerWin } = useAnimalChessStore()
+  const { tasks, canRewardMore: canRewardMoreTasks } = useTaskStore()
+  const { winsToday, dailyLimit: chessDailyLimit, rewardPerWin, canWin } = useAnimalChessStore()
 
   const [joy, setJoy] = useState(false)
   const joyTimerRef = useRef<number | undefined>(undefined)
@@ -151,7 +151,7 @@ export function HomeScreen({
             >
               <span className="text-sm font-medium text-ink-700">{t('home.tasksButton')}</span>
               <span className="text-[10px] text-ink-400">
-                {rewardedTodayCount >= dailyRewardLimit
+                {!canRewardMoreTasks
                   ? t('home.tasksRewardCappedHint')
                   : t('home.tasksOpenHint', { count: openTaskCount })}
               </span>
@@ -171,7 +171,7 @@ export function HomeScreen({
                 {t('home.animalChessButton')}
               </span>
               <span className="text-[10px] text-ink-400">
-                {winsToday >= chessDailyLimit
+                {!canWin
                   ? t('home.animalChessLimitReachedHint')
                   : t('home.animalChessTodayHint', {
                       reward: rewardPerWin,

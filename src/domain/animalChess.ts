@@ -30,11 +30,13 @@ export function countAnimalChessWinsToday(
   return wins.filter((w) => w.date === today).length
 }
 
+/** isAdmin：CJ 的测试账号跳过每日上限（Supabase profiles.role='admin'，见 useGameStore.ts） */
 export function canRewardAnimalChessWinToday(
   wins: AnimalChessWinRecord[],
   today = getLocalDateKey(),
+  isAdmin = false,
 ): boolean {
-  return countAnimalChessWinsToday(wins, today) < ANIMAL_CHESS_DAILY_WIN_LIMIT
+  return isAdmin || countAnimalChessWinsToday(wins, today) < ANIMAL_CHESS_DAILY_WIN_LIMIT
 }
 
 export interface RecordAnimalChessResultOutcome {
@@ -49,8 +51,9 @@ export interface RecordAnimalChessResultOutcome {
 export function recordAnimalChessWin(
   wins: AnimalChessWinRecord[],
   today = getLocalDateKey(),
+  isAdmin = false,
 ): RecordAnimalChessResultOutcome {
-  if (!canRewardAnimalChessWinToday(wins, today)) {
+  if (!canRewardAnimalChessWinToday(wins, today, isAdmin)) {
     return { wins, stardustEarned: 0 }
   }
   return {

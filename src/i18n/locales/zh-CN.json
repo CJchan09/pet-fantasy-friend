@@ -75,6 +75,19 @@
     "mistdeer": { "species": "雾角鹿", "scene": "雾林 · 清晨" },
     "streamturtle": { "species": "溪石龟", "scene": "溪畔 · 午后" }
   },
+  "login": {
+    "signInSubtitle": "登录继续你的旅程",
+    "signUpSubtitle": "注册一个账号，开始养成",
+    "emailLabel": "邮箱",
+    "passwordLabel": "密码",
+    "signInButton": "登录",
+    "signUpButton": "注册",
+    "signUpSuccessHint": "注册成功，去邮箱点确认链接后再登录",
+    "orDivider": "或",
+    "googleButton": "用 Google 一键登录",
+    "switchToSignUp": "还没有账号？注册一个",
+    "switchToSignIn": "已经有账号？直接登录"
+  },
   "starter": {
     "title": "选一只陪你成长的伙伴",
     "subtitle": "选好之后可以给它取个名字",
@@ -115,6 +128,11 @@
   "settings": {
     "title": "设置",
     "backButton": "返回",
+    "signOutButton": "登出",
+    "adminBadge": "Admin 测试账号 · 每日上限已跳过",
+    "adminPanelTitle": "Admin 面板",
+    "adminPanelHint": "测试专用，直接加星尘，不走任何赚取入口",
+    "adminAddStardustButton": "加星尘",
     "exportReminder": "已经用了一段时间了，建议导出一份存档备份",
     "sizeWarning": "存档已有 {{size}} KB，建议导出备份或清理历史记录",
     "backupTitle": "存档备份",

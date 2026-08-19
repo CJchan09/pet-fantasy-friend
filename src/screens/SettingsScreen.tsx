@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { useGameStore } from '@/store/useGameStore'
+import { useAuthStore } from '@/store/useAuthStore'
 import { LanguageToggle } from '@/components/LanguageToggle'
 
 interface SettingsScreenProps {
@@ -24,9 +25,17 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
   const { exportSave, importSave, shouldRemindExport, sizeBytes, shouldWarnSize } =
     useSettingsStore()
   const resetGame = useGameStore((s) => s.resetGame)
+  const adminAddStardust = useGameStore((s) => s.adminAddStardust)
+  const { user, role, signOut } = useAuthStore()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [importResult, setImportResult] = useState<'success' | 'error' | null>(null)
   const [confirmingReset, setConfirmingReset] = useState(false)
+  const [adminAmount, setAdminAmount] = useState('100')
+
+  function handleAdminAddStardust() {
+    const amount = Number(adminAmount)
+    adminAddStardust(amount)
+  }
 
   function handleResetConfirmed() {
     setConfirmingReset(false)
@@ -69,6 +78,47 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
         </button>
         <h1 className="text-[15px] font-medium text-ink-900">{t('settings.title')}</h1>
       </header>
+
+      <section className="mb-3 flex items-center justify-between rounded-[20px] bg-card p-4 shadow-soft">
+        <div>
+          <p className="text-sm font-medium text-ink-800">{user?.email ?? ''}</p>
+          {role === 'admin' && (
+            <p className="mt-0.5 text-xs text-gold-700">{t('settings.adminBadge')}</p>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={signOut}
+          className="rounded-xl border border-line px-3 py-2 text-sm font-medium text-ink-700"
+        >
+          {t('settings.signOutButton')}
+        </button>
+      </section>
+
+      {role === 'admin' && (
+        <section className="mb-3 flex flex-col gap-3 rounded-[20px] bg-card p-4 shadow-soft">
+          <div>
+            <p className="text-sm font-medium text-ink-800">{t('settings.adminPanelTitle')}</p>
+            <p className="mt-1 text-xs text-ink-400">{t('settings.adminPanelHint')}</p>
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="number"
+              min={1}
+              value={adminAmount}
+              onChange={(e) => setAdminAmount(e.target.value)}
+              className="w-24 rounded-xl bg-cream-100 px-3 py-2.5 text-base text-ink-900 outline-none focus:ring-1 focus:ring-gold-500/40"
+            />
+            <button
+              type="button"
+              onClick={handleAdminAddStardust}
+              className="flex-1 rounded-xl bg-gold-500 py-2.5 text-sm font-medium text-[#FFFDF6]"
+            >
+              {t('settings.adminAddStardustButton')}
+            </button>
+          </div>
+        </section>
+      )}
 
       {shouldRemindExport && (
         <div className="mb-3 rounded-2xl bg-chip px-4 py-3 text-xs text-ink-600">

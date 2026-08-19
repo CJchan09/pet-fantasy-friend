@@ -15,11 +15,13 @@ export function countFocusSessionsToday(
   return sessions.filter((s) => s.date === today).length
 }
 
+/** isAdmin：CJ 的测试账号跳过每日上限（Supabase profiles.role='admin'，见 useGameStore.ts） */
 export function canStartFocusSession(
   sessions: FocusSessionRecord[],
   today = getLocalDateKey(),
+  isAdmin = false,
 ): boolean {
-  return countFocusSessionsToday(sessions, today) < FOCUS_DAILY_SESSION_LIMIT
+  return isAdmin || countFocusSessionsToday(sessions, today) < FOCUS_DAILY_SESSION_LIMIT
 }
 
 export interface CompleteFocusResult {
@@ -33,8 +35,9 @@ export interface CompleteFocusResult {
 export function completeFocusSession(
   sessions: FocusSessionRecord[],
   today = getLocalDateKey(),
+  isAdmin = false,
 ): CompleteFocusResult {
-  if (!canStartFocusSession(sessions, today)) {
+  if (!canStartFocusSession(sessions, today, isAdmin)) {
     return { sessions, stardustEarned: 0 }
   }
   return {

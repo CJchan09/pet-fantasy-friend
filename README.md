@@ -4,7 +4,7 @@ Web 端奇幻宠物养成应用。产品文档见上级目录 `../docs/`（PRD /
 
 **在线试玩**：https://cjchan09.github.io/pet-fantasy-friend/
 
-本仓库当前范围：**阶段一（v0.1 核心循环）+ 阶段二（v0.5 功能完整）**——反思、专注、自定义任务三种赚星尘方式，喂养/升级，孵化系统，宠物状态机（活跃/疲倦/沉睡/唤醒），图鉴，存档导出/导入。**不含** v1.0 的周回顾报告与付费墙/订阅（见文末「还没做」）。
+本仓库当前范围：**阶段一（v0.1 核心循环）+ 阶段二（v0.5 功能完整）+ 账号系统**——反思、专注、自定义任务三种赚星尘方式，喂养/升级，孵化系统，宠物状态机（活跃/疲倦/沉睡/唤醒），图鉴，存档导出/导入，Supabase 账号登录 + 云端存档同步。**不含** v1.0 的周回顾报告与付费墙/订阅（见文末「还没做」）。
 
 已接入正式美术与设计系统：
 - **宠物立绘**：设计侧 PNG（`../Image/宠物png/`）经 `scripts/convertCreatures.mjs` 转成 WebP（约 5MB/张 → 23–50KB/张），输出到 `public/creatures/`。设计侧更新 PNG 后重跑该脚本即可。
@@ -18,17 +18,28 @@ Web 端奇幻宠物养成应用。产品文档见上级目录 `../docs/`（PRD /
 
 ## 技术栈
 
-React + TypeScript + Vite + Tailwind CSS v4 + Zustand + react-i18next + vite-plugin-pwa + Vitest。部署：GitHub Actions 构建 → GitHub Pages（`.github/workflows/deploy.yml`，push 到 `main` 自动重新部署）。
+React + TypeScript + Vite + Tailwind CSS v4 + Zustand + react-i18next + vite-plugin-pwa + Vitest + Supabase（Auth + Postgres）。部署：GitHub Actions 构建 → GitHub Pages（`.github/workflows/deploy.yml`，push 到 `main` 自动重新部署）。
 
 ## 本地运行
+
+先在项目根目录建一个 `.env.local`（已在 `.gitignore` 里，不会被提交）：
+
+```
+VITE_SUPABASE_URL=你的 Supabase Project URL
+VITE_SUPABASE_ANON_KEY=你的 Supabase publishable/anon key
+```
+
+两个值在 Supabase Dashboard → Settings → API Keys 里找。这两个值设计上就是给客户端公开用的（不是密码），放进 `.env.local` 只是为了不硬编码进代码。
 
 ```bash
 npm install
 npm run dev       # 本地开发，默认 http://localhost:5173
-npm run test      # 跑 Vitest（domain / storage / store 单测，92 个）
+npm run test      # 跑 Vitest（domain / storage / store 单测，105 个）
 npm run build     # 生产构建（tsc -b && vite build）
 npm run preview   # 预览生产构建
 ```
+
+**生产部署**（GitHub Actions）额外需要在仓库 Settings → Secrets and variables → Actions 里配置同样的两个值（`VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`），`.github/workflows/deploy.yml` 会在构建时注入。
 
 ## 目录结构
 
@@ -41,15 +52,20 @@ src/
 │   ├── stardust.ts / reflection.ts / pet.ts       # 阶段一
 │   ├── tasks.ts / focus.ts / incubation.ts / petLifecycle.ts   # 阶段二
 │   ├── animalChess.ts     # 斗兽棋结果 -> 是否发星尘的纯判定逻辑
+│   ├── cloudSync.ts       # 登录时本机存档 vs 云端存档的合并规则（纯函数，不含 Supabase 调用本身）
 │   └── __tests__/
-├── storage/localStorageAdapter.ts  # localStorage 读写、schemaVersion（现为 3）迁移、导出/导入 JSON
+├── lib/
+│   ├── supabaseClient.ts  # Supabase 客户端单例
+│   └── cloudSync.ts       # 副作用编排：session 变化 → 拉取/合并/推送云端存档（见 App.tsx 里的 initCloudSync()）
+├── storage/localStorageAdapter.ts  # localStorage 读写、schemaVersion（现为 5）迁移、导出/导入 JSON
 ├── store/
-│   ├── useGameStore.ts    # 唯一持久化 store，全部 AppState 一起读写 localStorage
+│   ├── useGameStore.ts    # 唯一持久化 store，全部 AppState 一起读写 localStorage（+ 登录后同步云端）
+│   ├── useAuthStore.ts    # 登录状态、role（普通/admin）、注册/登录/登出 action
 │   ├── useFocusTimerStore.ts  # 专注倒计时，特意不持久化（刷新=中断，荣誉制）
-│   └── use*Store.ts       # 按域派生的选择器（Pet/Stardust/Reflection/Task/Focus/Egg/Dex/Settings）
+│   └── use*Store.ts       # 按域派生的选择器（Pet/Stardust/Reflection/Task/Focus/Egg/Dex/Settings/AnimalChess）
 ├── i18n/                  # react-i18next 配置 + zh-CN.json（简体，先行）+ en.json
 ├── components/            # UI 组件（pet/、reflection/、incubation/、stardust/）
-└── screens/                # HomeScreen / ReflectionScreen / ReflectionHistoryScreen /
+└── screens/                # LoginScreen / HomeScreen / ReflectionScreen / ReflectionHistoryScreen /
                               StarterPickerScreen / FocusScreen / TasksScreen / DexScreen /
                               SettingsScreen / AnimalChessScreen
 scripts/
@@ -58,6 +74,7 @@ scripts/
 ├── generateIcons.mjs            # 网站图标管线：设计侧 Logo → public/*.png + favicon.svg
 └── convertAnimalChessAssets.mjs # 斗兽棋资产管线：../dou-shou-qi/ → public/games/dou-shou-qi/
 public/games/dou-shou-qi/  # 嵌入的斗兽棋小游戏（独立 HTML，iframe 加载，见 AnimalChessScreen.tsx）
+supabase/schema.sql        # 数据库结构（profiles 表 + RLS + role 保护触发器），贴进 Supabase SQL Editor 执行
 ```
 
 ## 已做的判断（PRD 未给出具体数值 / 方案之处）
@@ -74,6 +91,7 @@ public/games/dou-shou-qi/  # 嵌入的斗兽棋小游戏（独立 HTML，iframe 
 - **专注计时**：倒计时本身不持久化（刷新=中断，不惩罚），但「今日已完成几次」持久化，避免刷新绕过每日上限。
 - **中文文案**：简体中文。
 - **斗兽棋奖励数值**：赢一局 10⭐、每日上限 2 次（20⭐/天）。这是 CJ 后加的需求，跟 PRD「星尘只能靠成长行为赚取」的原则有张力，数值刻意压低+设上限，详见上文「小游戏」小节的产品原则提醒。
+- **账号系统（CJ 2026-08-12 加，推翻 PRD「日记不出设备」原则）**：Supabase Auth（邮箱密码 + Google）+ Postgres。存档结构沿用现有「单一 JSON blob」模式——`profiles.game_state` 直接存整个 `AppState`，不拆表，改动面最小。未登录不能进游戏主流程。登录时的合并规则（`domain/cloudSync.ts` 的 `resolveLoginMerge`）：账号云端还没有存档（没做过起始三选一）→ 用本机的覆盖上去并立刻推送；账号云端已有进度 → 保留云端，本机不覆盖。**Admin 测试账号**：`profiles.role` 字段，只能在 Supabase SQL Editor 里手动设（`supabase/schema.sql` 底部有现成语句），前端/API 都改不了自己的 role（`prevent_role_self_update` 触发器挡住）——登录后跳过反思/任务/专注/斗兽棋全部每日上限，`SettingsScreen.tsx` 里还有一个「直接加星尘」的调试面板，仅 admin 可见。
 
 ## 还没做（v0.5 之后 / 本次范围之外）
 

@@ -17,6 +17,11 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # anon/publishable key 设计上就是给客户端公开用的，放 Actions secret 只是图方便统一管理，
+      # 不是因为它敏感——真正的访问控制在 Supabase 那边的 RLS 规则（见 supabase/schema.sql）
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

@@ -12,10 +12,12 @@ import {
   TASK_REWARD_PER_ITEM,
 } from '@/config/gameBalance'
 import { CREATURES } from '@/config/creatures'
+import { useAuthStore } from '../useAuthStore'
 
 beforeEach(() => {
   localStorage.clear()
   useGameStore.getState().resetForTests()
+  useAuthStore.setState({ role: 'user' })
 })
 
 describe('useGameStore 反思提交', () => {
@@ -321,6 +323,81 @@ describe('useGameStore 斗兽棋结果记账', () => {
       .recordAnimalChessResult({ winner: 'red', aiOwner: 'blue' })
     expect(rewarded).toBe(false)
     expect(useGameStore.getState().state.stardust.balance).toBe(balanceBefore)
+  })
+})
+
+describe('useGameStore Admin 测试账号跳过每日上限', () => {
+  it('反思：admin 每次提交都发星尘，且更新的是同一天那条记录（不重复插入）', () => {
+    useAuthStore.setState({ role: 'admin' })
+    useGameStore.getState().submitReflection({ gratitude: '第一次', learning: '', improvement: '' })
+    useGameStore.getState().submitReflection({ gratitude: '第二次', learning: '', improvement: '' })
+    const { state } = useGameStore.getState()
+    expect(state.stardust.balance).toBe(12 * 2) // 只填一题，每次都是 partial reward（12⭐/题）
+    expect(state.reflections).toHaveLength(1)
+    expect(state.reflections[0].answers.gratitude).toBe('第二次')
+  })
+
+  it('任务：超过每日上限后 admin 依然能领星尘', () => {
+    useAuthStore.setState({ role: 'admin' })
+    let balanceBefore = 0
+    for (let i = 0; i < TASK_FREE_DAILY_ITEM_LIMIT + 2; i++) {
+      useGameStore.getState().addTask(`任务${i}`)
+      const id = useGameStore.getState().state.tasks[i].id
+      balanceBefore = useGameStore.getState().state.stardust.balance
+      useGameStore.getState().toggleTask(id)
+      expect(useGameStore.getState().state.stardust.balance).toBe(
+        balanceBefore + TASK_REWARD_PER_ITEM,
+      )
+    }
+  })
+
+  it('专注：超过每日上限后 admin 依然能领星尘', () => {
+    useAuthStore.setState({ role: 'admin' })
+    for (let i = 0; i < FOCUS_DAILY_SESSION_LIMIT + 2; i++) {
+      const balanceBefore = useGameStore.getState().state.stardust.balance
+      const success = useGameStore.getState().completeFocusSession()
+      expect(success).toBe(true)
+      expect(useGameStore.getState().state.stardust.balance).toBe(
+        balanceBefore + FOCUS_REWARD_PER_SESSION,
+      )
+    }
+  })
+
+  it('斗兽棋：超过每日上限后 admin 依然能领星尘', () => {
+    useAuthStore.setState({ role: 'admin' })
+    for (let i = 0; i < ANIMAL_CHESS_DAILY_WIN_LIMIT + 2; i++) {
+      const balanceBefore = useGameStore.getState().state.stardust.balance
+      const rewarded = useGameStore
+        .getState()
+        .recordAnimalChessResult({ winner: 'red', aiOwner: 'blue' })
+      expect(rewarded).toBe(true)
+      expect(useGameStore.getState().state.stardust.balance).toBe(
+        balanceBefore + ANIMAL_CHESS_WIN_REWARD,
+      )
+    }
+  })
+})
+
+describe('useGameStore Admin 直接加星尘', () => {
+  it('admin 账号可以直接加星尘，不用走任何赚取入口', () => {
+    useAuthStore.setState({ role: 'admin' })
+    const ok = useGameStore.getState().adminAddStardust(500)
+    expect(ok).toBe(true)
+    expect(useGameStore.getState().state.stardust.balance).toBe(500)
+  })
+
+  it('非 admin 账号调用无效，不改变余额', () => {
+    const ok = useGameStore.getState().adminAddStardust(500)
+    expect(ok).toBe(false)
+    expect(useGameStore.getState().state.stardust.balance).toBe(0)
+  })
+
+  it('非法数值（负数/0/NaN）不生效', () => {
+    useAuthStore.setState({ role: 'admin' })
+    expect(useGameStore.getState().adminAddStardust(0)).toBe(false)
+    expect(useGameStore.getState().adminAddStardust(-10)).toBe(false)
+    expect(useGameStore.getState().adminAddStardust(NaN)).toBe(false)
+    expect(useGameStore.getState().state.stardust.balance).toBe(0)
   })
 })
 

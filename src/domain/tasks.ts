@@ -12,8 +12,9 @@ export function countTasksRewardedToday(tasks: TaskItem[], today = getLocalDateK
   return tasks.filter((t) => t.rewarded && t.rewardedDate === today).length
 }
 
-export function canRewardMoreTasksToday(rewardedTodayCount: number): boolean {
-  return rewardedTodayCount < TASK_FREE_DAILY_ITEM_LIMIT
+/** isAdmin：CJ 的测试账号跳过每日上限（Supabase profiles.role='admin'，见 useGameStore.ts） */
+export function canRewardMoreTasksToday(rewardedTodayCount: number, isAdmin = false): boolean {
+  return isAdmin || rewardedTodayCount < TASK_FREE_DAILY_ITEM_LIMIT
 }
 
 export interface CompleteTaskResult {
@@ -24,13 +25,19 @@ export interface CompleteTaskResult {
 /**
  * 勾选任务完成。已经完成过的任务再次勾选不做任何事（幂等）。
  */
-export function completeTask(tasks: TaskItem[], id: string, today = getLocalDateKey()): CompleteTaskResult {
+export function completeTask(
+  tasks: TaskItem[],
+  id: string,
+  today = getLocalDateKey(),
+  isAdmin = false,
+): CompleteTaskResult {
   const target = tasks.find((t) => t.id === id)
   if (!target || target.done) {
     return { tasks, stardustEarned: 0 }
   }
 
   // 已经发过星尘的任务（曾经完成过又被取消勾选）重新勾选：只改 done，不再判定/发放星尘
+  // （admin 也不例外——这条是防重复刷同一个任务，不是每日上限，两者不是一回事）
   if (target.rewarded) {
     return {
       tasks: tasks.map((t) => (t.id === id ? { ...t, done: true } : t)),
@@ -39,7 +46,7 @@ export function completeTask(tasks: TaskItem[], id: string, today = getLocalDate
   }
 
   const rewardedTodayCount = countTasksRewardedToday(tasks, today)
-  const canReward = canRewardMoreTasksToday(rewardedTodayCount)
+  const canReward = canRewardMoreTasksToday(rewardedTodayCount, isAdmin)
   const stardustEarned = canReward ? TASK_REWARD_PER_ITEM : 0
 
   return {

@@ -38,4 +38,11 @@ describe('focus 每日上限', () => {
     expect(countFocusSessionsToday(yesterday, TODAY)).toBe(0)
     expect(canStartFocusSession(yesterday, TODAY)).toBe(true)
   })
+
+  it('isAdmin=true 时即使已达上限也能继续（Admin 测试账号跳过每日上限）', () => {
+    const full = sessionsToday(FOCUS_DAILY_SESSION_LIMIT)
+    expect(canStartFocusSession(full, TODAY, true)).toBe(true)
+    const { stardustEarned } = completeFocusSession(full, TODAY, true)
+    expect(stardustEarned).toBe(FOCUS_REWARD_PER_SESSION)
+  })
 })

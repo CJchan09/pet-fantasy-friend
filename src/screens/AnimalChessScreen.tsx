@@ -30,8 +30,9 @@ function isGameOverMessage(data: unknown): data is GameOverMessage {
  */
 export function AnimalChessScreen({ onBack }: AnimalChessScreenProps) {
   const { t, i18n } = useTranslation()
-  const { winsToday, dailyLimit, rewardPerWin, recordAnimalChessResult } = useAnimalChessStore()
-  const atDailyLimit = winsToday >= dailyLimit
+  const { winsToday, dailyLimit, rewardPerWin, canWin, recordAnimalChessResult } =
+    useAnimalChessStore()
+  const atDailyLimit = !canWin
   const [banner, setBanner] = useState<'rewarded' | 'won-no-reward' | null>(null)
   const bannerTimerRef = useRef<number | undefined>(undefined)
 

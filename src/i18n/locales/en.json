@@ -75,6 +75,19 @@
     "mistdeer": { "species": "Mist Deer", "scene": "Misty forest · Morning" },
     "streamturtle": { "species": "Stream Turtle", "scene": "Creekside · Afternoon" }
   },
+  "login": {
+    "signInSubtitle": "Sign in to continue your journey",
+    "signUpSubtitle": "Create an account to get started",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "signInButton": "Sign in",
+    "signUpButton": "Sign up",
+    "signUpSuccessHint": "Account created — check your email for a confirmation link, then sign in",
+    "orDivider": "or",
+    "googleButton": "Continue with Google",
+    "switchToSignUp": "No account yet? Sign up",
+    "switchToSignIn": "Already have an account? Sign in"
+  },
   "starter": {
     "title": "Pick a friend to grow with",
     "subtitle": "You can name it once you've chosen",
@@ -115,6 +128,11 @@
   "settings": {
     "title": "Settings",
     "backButton": "Back",
+    "signOutButton": "Sign out",
+    "adminBadge": "Admin test account · daily limits skipped",
+    "adminPanelTitle": "Admin panel",
+    "adminPanelHint": "Testing only — adds stardust directly, bypassing every earn source",
+    "adminAddStardustButton": "Add stardust",
     "exportReminder": "You've been playing a while — consider exporting a backup",
     "sizeWarning": "Save data is {{size}} KB — consider exporting or clearing old entries",
     "backupTitle": "Backup",

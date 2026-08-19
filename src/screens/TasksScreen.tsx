@@ -13,7 +13,7 @@ interface TasksScreenProps {
  */
 export function TasksScreen({ onBack }: TasksScreenProps) {
   const { t } = useTranslation()
-  const { tasks, rewardedTodayCount, dailyRewardLimit, addTask, removeTask, toggleTask } =
+  const { tasks, rewardedTodayCount, dailyRewardLimit, canRewardMore, addTask, removeTask, toggleTask } =
     useTaskStore()
   const [label, setLabel] = useState('')
 
@@ -25,7 +25,7 @@ export function TasksScreen({ onBack }: TasksScreenProps) {
     setLabel('')
   }
 
-  const atDailyLimit = rewardedTodayCount >= dailyRewardLimit
+  const atDailyLimit = !canRewardMore
 
   return (
     <div className="mx-auto flex min-h-full w-full max-w-md flex-col px-4 pb-6 pt-4">

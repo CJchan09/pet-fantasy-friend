@@ -54,4 +54,11 @@ describe('recordAnimalChessWin 每日上限', () => {
   it('奖励数值明显低于反思等核心成长行为（产品原则约束，见 gameBalance.ts 注释）', () => {
     expect(ANIMAL_CHESS_WIN_REWARD).toBeLessThan(20)
   })
+
+  it('isAdmin=true 时即使已达上限也能继续领（Admin 测试账号跳过每日上限）', () => {
+    const full = winsToday(ANIMAL_CHESS_DAILY_WIN_LIMIT)
+    expect(canRewardAnimalChessWinToday(full, TODAY, true)).toBe(true)
+    const { stardustEarned } = recordAnimalChessWin(full, TODAY, true)
+    expect(stardustEarned).toBe(ANIMAL_CHESS_WIN_REWARD)
+  })
 })
