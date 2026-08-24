@@ -20,6 +20,26 @@ alter table public.profiles enable row level security;
 grant usage on schema public to authenticated;
 grant select, insert, update on public.profiles to authenticated;
 
+-- game_state 只接受有界的 JSON object。防止前端误把图片 base64 / 超大存档塞进单行，
+-- 也避免恶意客户端用无界 JSON 消耗数据库配额。图片本体应放 Supabase Storage，这里只存路径和元数据。
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'profiles_game_state_shape_and_size'
+      and conrelid = 'public.profiles'::regclass
+  ) then
+    alter table public.profiles
+      add constraint profiles_game_state_shape_and_size
+      check (
+        jsonb_typeof(game_state) = 'object'
+        and octet_length(game_state::text) <= 1048576
+      );
+  end if;
+end;
+$$;
+
 drop policy if exists "profiles_select_own" on public.profiles;
 create policy "profiles_select_own"
   on public.profiles for select
@@ -76,6 +96,32 @@ drop trigger if exists prevent_role_self_update on public.profiles;
 create trigger prevent_role_self_update
   before update on public.profiles
   for each row execute function public.prevent_role_self_update();
+
+-- 同一条权限边界也必须覆盖 INSERT。正常注册由 handle_new_user 建 row；若旧账号缺 row、
+-- 前端执行兜底 INSERT，已登录用户提交的 role 一律强制为 user，不能趁首次插入自封 admin。
+create or replace function public.prevent_role_self_insert()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is not null then
+    new.role := 'user';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists prevent_role_self_insert on public.profiles;
+create trigger prevent_role_self_insert
+  before insert on public.profiles
+  for each row execute function public.prevent_role_self_insert();
+
+-- 这些函数只供数据库 trigger 内部调用，不应暴露成 Data API 的 RPC。
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
+revoke execute on function public.prevent_role_self_update() from public, anon, authenticated;
+revoke execute on function public.prevent_role_self_insert() from public, anon, authenticated;
 
 -- ============================================================
 -- 下面这条不是 schema 的一部分，是给 CJ 自己手动跑的：

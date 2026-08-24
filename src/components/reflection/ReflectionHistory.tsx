@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { ReflectionEntry } from '@/types'
 import { creatureAsset } from '@/config/creatures'
 import { usePetStore } from '@/store/usePetStore'
+import { petStageForLevel } from '@/domain/pet'
 
 const MOOD_EMOJIS: Record<number, string> = {
   1: '😞',
@@ -68,7 +69,7 @@ export function ReflectionHistory({ reflections }: ReflectionHistoryProps) {
             <div className="mb-3 flex items-start justify-between">
               <div className="flex items-center gap-3">
                 <img
-                  src={creatureAsset(pet.species, 'joy')}
+                  src={creatureAsset(pet.species, 'joy', petStageForLevel(pet.level))}
                   alt={pet.name}
                   className="h-14 w-14 object-contain"
                   draggable={false}

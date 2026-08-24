@@ -7,9 +7,9 @@ Web 端奇幻宠物养成应用。产品文档见上级目录 `../docs/`（PRD /
 本仓库当前范围：**阶段一（v0.1 核心循环）+ 阶段二（v0.5 功能完整）+ 账号系统**——反思、专注、自定义任务三种赚星尘方式，喂养/升级，孵化系统，宠物状态机（活跃/疲倦/沉睡/唤醒），图鉴，存档导出/导入，Supabase 账号登录 + 云端存档同步。**不含** v1.0 的周回顾报告与付费墙/订阅（见文末「还没做」）。
 
 已接入正式美术与设计系统：
-- **宠物立绘**：设计侧 PNG（`../Image/宠物png/`）经 `scripts/convertCreatures.mjs` 转成 WebP（约 5MB/张 → 23–50KB/张），输出到 `public/creatures/`。设计侧更新 PNG 后重跑该脚本即可。
+- **宠物立绘**：20 只宠物均有幼年、成年、老年、仙人级四阶段，以及睁眼、闭眼、走路、疲倦、沉睡状态。`scripts/buildActionAssets.mjs` 负责统一透明背景、500×500 画布和主体视觉尺寸，输出到 `public/creatures/`。
 - **视觉规范**：色板/圆角/阴影取自 `../游戏网页设计构思-handoff/`（暖奶油底 + 星尘暖金强调色），布局与文案遵循 `../Image/UI稿_AI生成/_UI规格说明.md`。
-- **动画**：待机随机眨眼（睁眼/闭眼两帧姿势对齐，3.5–7 秒随机间隔）；喂养时切喜悦帧 2.2 秒；疲倦/沉睡态用真实的对应美术（不眨眼）；星光粒子闪烁 + 宠物呼吸浮动，沉睡时停止（`prefers-reduced-motion` 时全部停用）。
+- **动画**：待机随机眨眼（3.5–7 秒随机间隔，闭眼停留 650ms）与偶发走路动作，帧间使用短交叉淡化；喂养时切喜悦帧；疲倦/沉睡态使用对应美术；星光粒子闪烁 + 宠物呼吸浮动，沉睡时停止（`prefers-reduced-motion` 时全部停用）。
 - **网站图标**：设计侧交付的蛋形 Logo（`../Image/logo/`）经 `scripts/generateIcons.mjs` 裁切/生成 favicon、apple-touch-icon、PWA manifest 图标（含 maskable 变体），输出到 `public/`。源图四周留白很多，脚本按小尺寸场景（favicon 等）裁紧、按需要安全边距的场景（maskable）保留原始留白，两种都不用手动再调。Logo 更新后重跑该脚本即可。
 
 **小游戏——斗兽棋**：CJ 自己做的独立 HTML5 小游戏（`../dou-shou-qi/`，支持人机对战 + 本地双人对战），经 `scripts/convertAnimalChessAssets.mjs` 转 WebP（13MB → 352KB，顺便去掉了代码里未引用的全身图美术）后嵌入 `public/games/dou-shou-qi/`，主界面加一个入口按钮，用 `<iframe>` 打开。赢一局给 10 ⭐（每日最多 2 次），输了不扣分；游戏结束时通过 `postMessage` 把结果报给外层 React 页面，由外层决定要不要发星尘——游戏本身不需要知道任何星尘逻辑。游戏原本文案全是中文硬编码，同一个转换脚本又给它接了一套独立的中英 i18n（跟 App 那套 react-i18next 各自独立，不共用同一份文案文件），`AnimalChessScreen.tsx` 用当前 App 语言拼 `?lang=en` / `?lang=zh-CN` 传给 iframe，两边语言联动。
@@ -34,7 +34,7 @@ VITE_SUPABASE_ANON_KEY=你的 Supabase publishable/anon key
 ```bash
 npm install
 npm run dev       # 本地开发，默认 http://localhost:5173
-npm run test      # 跑 Vitest（domain / storage / store 单测，109 个）
+npm run test      # 跑 Vitest（domain / storage / store / component 单测，123 个）
 npm run build     # 生产构建（tsc -b && vite build）
 npm run preview   # 预览生产构建
 ```
@@ -47,7 +47,7 @@ npm run preview   # 预览生产构建
 src/
 ├── config/
 │   ├── gameBalance.ts    # 全部数值常量：星尘经济、平衡红线、孵化成本、宠物状态机天数阈值
-│   └── creatures.ts      # 6 种生物档案（含稀有度）+ 资产路径索引
+│   └── creatures.ts      # 20 种生物档案（含稀有度）+ 四阶段资产路径索引
 ├── domain/                # 纯业务逻辑，不依赖 React
 │   ├── stardust.ts / reflection.ts / pet.ts       # 阶段一
 │   ├── tasks.ts / focus.ts / incubation.ts / petLifecycle.ts   # 阶段二
@@ -82,8 +82,9 @@ supabase/schema.sql        # 数据库结构（profiles 表 + RLS + role 保护�
 - **喂养数值**：`FEED_STARDUST_COST=10` 换 `FEED_INTIMACY_GAIN=10` 亲密度，`INTIMACY_PER_LEVEL=50` 升一级。
 - **反思空白字符判定**：按去除首尾空白后长度 > 0 判断，不是严格按字符数。
 - **单一 Zustand store**：`useGameStore` 是唯一持久化 store，其余 `use*Store` 都是派生选择器，避免多个 store 各自持久化互相覆盖同一个 localStorage key。
-- **6 种生物稀有度（CJ 2026-08-10 改版）**：当前 6 只**全部是 common**、只有一个形态（`maxStage: 1`）。未来「更强」的生物走 rare/legendary，`maxStage` 2–3，可随成长进化成不同的样子——美术就位后在 `config/creatures.ts` 加条目即可，抽蛋池/图鉴/稀有度标签都从这份配置派生，自动跟上。之前的 3/2/1 分级和「星岚龙 30 次反思里程碑解锁」暂时下线（`checkLegendaryUnlock` 通道保留在代码里，等未来有 legendary 生物时直接复用）。
-- **起始名单（CJ 2026-08-11 改版）**：6 只里 5 只（苔熊/灵狐/云羊/雾角鹿/溪石龟）放进首次三选一的候选名单，`config/creatures.ts` 的 `STARTER_SPECIES`；星岚龙刻意不放进去，留给抽蛋系统当「隐藏」生物，只能孵化遇见。
+- **20 种生物与稀有度**：Common 10 只、Epic 6 只、Legend 4 只；所有生物均有四阶段美术。抽蛋池、图鉴与稀有度标签都从 `config/creatures.ts` 派生。
+- **起始名单**：首次进入固定三选一（苔藓熊、灵狐、云羊）；其余 17 只只能通过抽蛋逐步取得。
+- **等级与进化**：等级上限 50；1–19 幼年、20–29 成年、30–39 老年、40–50 仙人级。旧版卡在 Level 5 的存档会按亲密度自动修复。
 - **孵化流程（CJ 2026-08-10 改版，抽蛋制；2026-08-11 调整揭晓时机）**：按「抽一颗蛋」→ 抽的瞬间就确定蛋里是什么生物，**直接显示**对应生物的蛋美术和名字（不做「神秘蛋」悬念）→ 星尘浇灌进度条（20⭐/次，攒满 60⭐ 孵化）。抽蛋池只有未拥有的生物，**每只生物永远只有一只，不会重复**；全部集齐后显示「都到齐了」。抽蛋免费、进度确定性推进、最终必集齐——不违反 PRD「不做付费随机抽取」的原则，随机只发生在「哪只先来」。抽蛋动画刻意收敛（蛋落巢晃两下），不做开箱式悬念。蛋美术来自 `scripts/convertEggAssets.mjs`（设计侧 PNG `../Image/Egg/` 抠透明背景转 WebP，输出到 `public/eggs/`）。
 - **孵化起名弹窗（CJ 2026-08-12 加，`schemaVersion` 4→5）**：浇灌进度到达成本、真正孵化出来的那一刻（不是抽蛋时）强制弹窗报生物名字，输入框预填默认名，点确认即可（默认名也能直接用），弹窗没有背景点击/右上角关闭——这是刻意补的体验缺口，不做成能悄悄跳过的静默流程。`ownedCreatures` 从 `Record<string, boolean>` 改成 `Record<string, {nickname}>`，图鉴显示的是昵称而不是固定物种名；旧存档迁移时当前陪伴宠物用 `pet.name` 当默认昵称，其余用生物原名。
 - **自定义任务模型**：一次性待办（不是每日重置的习惯打卡），每个任务只发一次星尘。
@@ -98,7 +99,6 @@ supabase/schema.sql        # 数据库结构（profiles 表 + RLS + role 保护�
 
 ## 还没做（v0.5 之后 / 本次范围之外）
 
-- **进化 2/3 阶段视觉**——设计侧只交付了 S1 美术，等级会涨但外观暂时不随进化阶段变化
 - **周回顾报告**（v1.0 / P1）——本地生成 + 导出图片，纯代码可做，还没做
 - **付费墙 / 订阅**（v1.0 / P1）——需要先注册 Merchant of Record 账号（如 Lemon Squeezy）并决定定价，这部分需要 CJ 先做账号与定价决定
 - **落地页、正式埋点**（v1.0 / P1）

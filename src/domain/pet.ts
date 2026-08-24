@@ -2,18 +2,28 @@ import {
   FEED_INTIMACY_GAIN,
   FEED_STARDUST_COST,
   INTIMACY_PER_LEVEL,
-  MAX_LEVEL_STAGE_ONE,
+  MAX_PET_LEVEL,
 } from '@/config/gameBalance'
 import { canAffordStardust, spendStardust } from './stardust'
 
 export function calculateLevel(intimacy: number): number {
   const level = Math.floor(intimacy / INTIMACY_PER_LEVEL) + 1
-  return Math.min(level, MAX_LEVEL_STAGE_ONE)
+  return Math.min(level, MAX_PET_LEVEL)
+}
+
+export type PetStage = 1 | 2 | 3 | 4
+
+/** 等级对应的生命阶段：1-19 幼年、20-29 成年、30-39 老年、40-50 仙人级。 */
+export function petStageForLevel(level: number): PetStage {
+  if (level >= 40) return 4
+  if (level >= 30) return 3
+  if (level >= 20) return 2
+  return 1
 }
 
 /** 当前等级内的亲密度进度（0–1），用于等级条展示；满级恒为 1 */
 export function levelProgress(intimacy: number): number {
-  if (calculateLevel(intimacy) >= MAX_LEVEL_STAGE_ONE) {
+  if (calculateLevel(intimacy) >= MAX_PET_LEVEL) {
     return 1
   }
   return (intimacy % INTIMACY_PER_LEVEL) / INTIMACY_PER_LEVEL

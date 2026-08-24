@@ -29,7 +29,7 @@
     "eggAdvanceHint": "Tap to nurture · costs {{cost}} ⭐",
     "eggAdvanceNotEnoughHint": "Not enough stardust yet — go earn some",
     "collectionCompleteTitle": "Everyone's here",
-    "collectionCompleteHint": "All six creatures collected — new friends will arrive someday",
+    "collectionCompleteHint": "All twenty creatures collected — new friends will arrive someday",
     "hatchTitle": "You hatched a {{species}}!",
     "hatchSubtitle": "Want to give it a name?",
     "hatchNameLabel": "Give it a name",
@@ -68,12 +68,26 @@
     "5": "Great"
   },
   "creature": {
-    "mossbear": { "species": "Forest Cub", "scene": "Mossy tundra · Dusk", "defaultName": "Mossy" },
+    "mossbear": { "species": "Moss Bear", "scene": "Mossy tundra · Dusk", "defaultName": "Mossy" },
     "spiritfox": { "species": "Spirit Fox", "scene": "Woodland · Dawn", "defaultName": "Wisp" },
     "cloudsheep": { "species": "Cloud Sheep", "scene": "Cloud plains · Afternoon", "defaultName": "Cloudy" },
-    "stardragon": { "species": "Star Dragonet", "scene": "Starfield · Night", "defaultName": "Nova" },
     "mistdeer": { "species": "Mist Deer", "scene": "Misty forest · Morning", "defaultName": "Misty" },
-    "streamturtle": { "species": "Stream Turtle", "scene": "Creekside · Afternoon", "defaultName": "Brook" }
+    "streamturtle": { "species": "Stream Turtle", "scene": "Creekside · Afternoon", "defaultName": "Brook" },
+    "fireflyrabbit": { "species": "Firefly Rabbit", "scene": "Firefly woods · Nightfall", "defaultName": "Glow" },
+    "dewdropcat": { "species": "Dewdrop Cat", "scene": "Dew garden · Morning", "defaultName": "Dewey" },
+    "honeysparrow": { "species": "Honey Sparrow", "scene": "Honey woods · Afternoon", "defaultName": "Honey" },
+    "jellyfrog": { "species": "Jelly Frog", "scene": "Rain pond · Evening", "defaultName": "Jelly" },
+    "cottonraccoon": { "species": "Cotton Raccoon", "scene": "Cotton cloud valley · Clear", "defaultName": "Cotton" },
+    "coralwhale": { "species": "Coral Whale", "scene": "Coral sea · Dawn", "defaultName": "Coral" },
+    "amberwolf": { "species": "Amber Wolf", "scene": "Amber woods · Dusk", "defaultName": "Amber" },
+    "crystalfoal": { "species": "Crystalwing Foal", "scene": "Crystalwing valley · Morning", "defaultName": "Crystal" },
+    "emberturtle": { "species": "Ember Tortoise Dragon", "scene": "Lava plain · Night", "defaultName": "Ember" },
+    "aurorafox": { "species": "Aurora Nine-Tailed Fox", "scene": "Aurora plain · Midnight", "defaultName": "Aurora" },
+    "stardustotter": { "species": "Stardust Otter", "scene": "Starlit riverbank · Night", "defaultName": "Stardust" },
+    "stardragon": { "species": "Star-Mist Dragon", "scene": "Starfield · Night", "defaultName": "Nova" },
+    "nightphoenix": { "species": "Eternal-Night Phoenix", "scene": "Night sky · Midnight", "defaultName": "Nocturne" },
+    "rainbowqilin": { "species": "Rainbow-Light Qilin", "scene": "Rainbow realm · Dawn", "defaultName": "Prism" },
+    "sharkmermaid": { "species": "Deep-Sea Ancient Shark", "scene": "Ocean abyss · Night", "defaultName": "Abyss" }
   },
   "login": {
     "signInSubtitle": "Sign in to continue your journey",

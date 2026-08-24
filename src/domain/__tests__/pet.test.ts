@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { calculateLevel, feedPet, levelProgress } from '../pet'
+import { calculateLevel, feedPet, levelProgress, petStageForLevel } from '../pet'
 import {
   FEED_STARDUST_COST,
   INTIMACY_PER_LEVEL,
-  MAX_LEVEL_STAGE_ONE,
+  MAX_PET_LEVEL,
 } from '@/config/gameBalance'
 
 describe('pet 亲密度与等级', () => {
@@ -13,6 +13,23 @@ describe('pet 亲密度与等级', () => {
 
   it('达到一个阈值升一级', () => {
     expect(calculateLevel(INTIMACY_PER_LEVEL)).toBe(2)
+  })
+
+  it('等级上限为 50，不再停在 5 级', () => {
+    expect(calculateLevel(INTIMACY_PER_LEVEL * 4)).toBe(5)
+    expect(calculateLevel(INTIMACY_PER_LEVEL * 5)).toBe(6)
+    expect(calculateLevel(Number.MAX_SAFE_INTEGER)).toBe(MAX_PET_LEVEL)
+  })
+
+  it('在 20、30、40 级切换四个生命阶段', () => {
+    expect(petStageForLevel(1)).toBe(1)
+    expect(petStageForLevel(19)).toBe(1)
+    expect(petStageForLevel(20)).toBe(2)
+    expect(petStageForLevel(29)).toBe(2)
+    expect(petStageForLevel(30)).toBe(3)
+    expect(petStageForLevel(39)).toBe(3)
+    expect(petStageForLevel(40)).toBe(4)
+    expect(petStageForLevel(50)).toBe(4)
   })
 
   it('星尘足够时喂养成功并可能升级', () => {
@@ -30,6 +47,6 @@ describe('pet 亲密度与等级', () => {
   it('levelProgress 反映当前等级内进度，满级恒为 1', () => {
     expect(levelProgress(0)).toBe(0)
     expect(levelProgress(INTIMACY_PER_LEVEL / 2)).toBe(0.5)
-    expect(levelProgress(INTIMACY_PER_LEVEL * MAX_LEVEL_STAGE_ONE)).toBe(1)
+    expect(levelProgress(INTIMACY_PER_LEVEL * MAX_PET_LEVEL)).toBe(1)
   })
 })

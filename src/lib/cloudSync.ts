@@ -2,7 +2,7 @@ import { supabase } from './supabaseClient'
 import { useGameStore } from '@/store/useGameStore'
 import { useAuthStore, type UserRole } from '@/store/useAuthStore'
 import { resolveLoginMerge } from '@/domain/cloudSync'
-import { saveState } from '@/storage/localStorageAdapter'
+import { parsePersistedState, saveState } from '@/storage/localStorageAdapter'
 import type { AppState } from '@/types'
 
 const PUSH_DEBOUNCE_MS = 800
@@ -34,10 +34,15 @@ async function pullAndMerge(userId: string) {
     }
   }
 
-  const cloudState =
-    data?.game_state && Object.keys(data.game_state).length > 0
-      ? (data.game_state as AppState)
-      : null
+  const hasCloudState =
+    data?.game_state &&
+    typeof data.game_state === 'object' &&
+    !Array.isArray(data.game_state) &&
+    Object.keys(data.game_state).length > 0
+  const cloudState = hasCloudState ? parsePersistedState(data.game_state) : null
+  if (hasCloudState && !cloudState) {
+    console.error('[cloudSync] 云端存档格式无效或超出大小限制，已忽略')
+  }
   const localState = useGameStore.getState().state
   const { resolved, source } = resolveLoginMerge(localState, cloudState)
 

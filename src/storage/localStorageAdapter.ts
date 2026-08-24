@@ -1,12 +1,148 @@
 import { CURRENT_SCHEMA_VERSION, type AppState, type EggState, type OwnedCreatureRecord } from '@/types'
 import { CREATURES, DEFAULT_SPECIES } from '@/config/creatures'
 import { unownedSpecies } from '@/domain/incubation'
+import { calculateLevel } from '@/domain/pet'
 import i18n from '@/i18n'
 
 /**
  * 全部数据只存 localStorage，不发起任何网络请求（PRD 5.1 / 隐私红线）。
  */
 export const STORAGE_KEY = 'pet-fantasy-friend:save'
+export const MAX_SAVE_SIZE_BYTES = 1_000_000
+
+const MAX_COLLECTION_ITEMS = 10_000
+const MAX_SHORT_TEXT_LENGTH = 500
+const MAX_REFLECTION_TEXT_LENGTH = 20_000
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function isBoundedString(value: unknown, maxLength = MAX_SHORT_TEXT_LENGTH): value is string {
+  return typeof value === 'string' && value.length <= maxLength
+}
+
+function isSafeNonNegativeInteger(value: unknown): value is number {
+  return Number.isSafeInteger(value) && (value as number) >= 0
+}
+
+function isOptionalDateString(value: unknown): value is string | null {
+  return value === null || isBoundedString(value, 64)
+}
+
+function isSessionRecord(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isBoundedString(value.date, 16) &&
+    isBoundedString(value.completedAt, 64)
+  )
+}
+
+function isReflectionAnswers(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isBoundedString(value.gratitude, MAX_REFLECTION_TEXT_LENGTH) &&
+    isBoundedString(value.learning, MAX_REFLECTION_TEXT_LENGTH) &&
+    isBoundedString(value.improvement, MAX_REFLECTION_TEXT_LENGTH)
+  )
+}
+
+function hasValidStateShape(state: AppState): boolean {
+  const collections = [state.reflections, state.tasks, state.focusSessions, state.animalChessWins]
+  if (collections.some((items) => !Array.isArray(items) || items.length > MAX_COLLECTION_ITEMS)) {
+    return false
+  }
+
+  if (
+    !isRecord(state.pet) ||
+    !isBoundedString(state.pet.name) ||
+    !isBoundedString(state.pet.species, 100) ||
+    !CREATURES[state.pet.species] ||
+    !isSafeNonNegativeInteger(state.pet.intimacy) ||
+    !isSafeNonNegativeInteger(state.pet.level) ||
+    !isRecord(state.stardust) ||
+    !isSafeNonNegativeInteger(state.stardust.balance) ||
+    typeof state.hasChosenStarter !== 'boolean' ||
+    !isOptionalDateString(state.lastGrowthAt) ||
+    !isSafeNonNegativeInteger(state.reflectionCount) ||
+    !isBoundedString(state.firstUsedAt, 64) ||
+    typeof state.hasExportedSave !== 'boolean'
+  ) {
+    return false
+  }
+
+  if (
+    !state.reflections.every(
+      (entry) =>
+        isRecord(entry) &&
+        isBoundedString(entry.date, 16) &&
+        isReflectionAnswers(entry.answers) &&
+        (entry.mood === undefined || [1, 2, 3, 4, 5].includes(entry.mood)) &&
+        isSafeNonNegativeInteger(entry.stardustAwarded) &&
+        isBoundedString(entry.updatedAt, 64),
+    )
+  ) {
+    return false
+  }
+
+  if (
+    state.draftReflection !== null &&
+    (!isRecord(state.draftReflection) ||
+      !isBoundedString(state.draftReflection.date, 16) ||
+      !isReflectionAnswers(state.draftReflection.answers) ||
+      (state.draftReflection.mood !== undefined &&
+        ![1, 2, 3, 4, 5].includes(state.draftReflection.mood)))
+  ) {
+    return false
+  }
+
+  if (
+    !state.tasks.every(
+      (task) =>
+        isRecord(task) &&
+        isBoundedString(task.id, 100) &&
+        isBoundedString(task.label) &&
+        typeof task.done === 'boolean' &&
+        typeof task.rewarded === 'boolean' &&
+        isBoundedString(task.createdAt, 64) &&
+        (task.rewardedDate === undefined || isBoundedString(task.rewardedDate, 16)),
+    ) ||
+    !state.focusSessions.every(isSessionRecord) ||
+    !state.animalChessWins.every(isSessionRecord)
+  ) {
+    return false
+  }
+
+  if (
+    state.egg !== null &&
+    (!isRecord(state.egg) ||
+      !isBoundedString(state.egg.species, 100) ||
+      !CREATURES[state.egg.species] ||
+      !isSafeNonNegativeInteger(state.egg.progress))
+  ) {
+    return false
+  }
+
+  if (!isRecord(state.ownedCreatures)) {
+    return false
+  }
+
+  return Object.entries(state.ownedCreatures).every(
+    ([species, record]) =>
+      Boolean(CREATURES[species]) &&
+      isRecord(record) &&
+      isBoundedString(record.nickname),
+  )
+}
+
+function serializedSizeBytes(value: unknown): number | null {
+  try {
+    const serialized = typeof value === 'string' ? value : JSON.stringify(value)
+    return new TextEncoder().encode(serialized).length
+  } catch {
+    return null
+  }
+}
 
 export function createDefaultState(): AppState {
   return {
@@ -63,6 +199,7 @@ function migrate(raw: unknown): AppState {
     state.schemaVersion < 2 && state.hasChosenStarter === undefined
 
   const mergedPet = { ...defaults.pet, ...state.pet }
+  mergedPet.level = calculateLevel(mergedPet.intimacy)
   const hasStarter = isLegacyV1WithoutStarterFlag || state.hasChosenStarter === true
 
   const rawOwnedCreatures = state.ownedCreatures as
@@ -118,13 +255,38 @@ function migrate(raw: unknown): AppState {
   }
 }
 
+/** localStorage、文件导入、云端拉取共用同一条不可信数据边界。 */
+export function parsePersistedState(raw: unknown): AppState | null {
+  try {
+    const size = serializedSizeBytes(raw)
+    if (size === null || size > MAX_SAVE_SIZE_BYTES) {
+      return null
+    }
+
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
+    if (
+      !isRecord(parsed) ||
+      !Number.isInteger(parsed.schemaVersion) ||
+      (parsed.schemaVersion as number) < 1 ||
+      (parsed.schemaVersion as number) > CURRENT_SCHEMA_VERSION
+    ) {
+      return null
+    }
+
+    const migrated = migrate(parsed)
+    return hasValidStateShape(migrated) ? migrated : null
+  } catch {
+    return null
+  }
+}
+
 export function loadState(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) {
       return createDefaultState()
     }
-    return migrate(JSON.parse(raw))
+    return parsePersistedState(raw) ?? createDefaultState()
   } catch {
     return createDefaultState()
   }
@@ -142,15 +304,7 @@ export function exportStateAsJson(state: AppState): string {
  * 导入校验：结构不对或 JSON 解析失败时返回 null，调用方负责向用户提示。
  */
 export function importStateFromJson(json: string): AppState | null {
-  try {
-    const parsed = JSON.parse(json)
-    if (typeof parsed.schemaVersion !== 'number' || !parsed.stardust || !parsed.pet) {
-      return null
-    }
-    return migrate(parsed)
-  } catch {
-    return null
-  }
+  return parsePersistedState(json)
 }
 
 /** localStorage 大致容量上限约 5-10MB，粗略估算当前存档大小（字节）供预警使用 */

@@ -4,7 +4,6 @@ import {
   ANIMAL_CHESS_DAILY_WIN_LIMIT,
   ANIMAL_CHESS_WIN_REWARD,
   EGG_ADVANCE_CHUNK,
-  EGG_COMMON_COST,
   FEED_STARDUST_COST,
   FOCUS_DAILY_SESSION_LIMIT,
   FOCUS_REWARD_PER_SESSION,
@@ -14,6 +13,7 @@ import {
 import { CREATURES } from '@/config/creatures'
 import { useAuthStore } from '../useAuthStore'
 import i18n from '@/i18n'
+import { eggCost } from '@/domain/incubation'
 
 beforeEach(() => {
   localStorage.clear()
@@ -171,7 +171,7 @@ describe('useGameStore 孵化系统（抽蛋 → 浇灌 → 孵化）', () => {
     const drawnSpecies = useGameStore.getState().state.egg?.species
     expect(drawnSpecies).toBeTruthy()
 
-    const steps = Math.ceil(EGG_COMMON_COST / EGG_ADVANCE_CHUNK)
+    const steps = Math.ceil(eggCost(drawnSpecies!) / EGG_ADVANCE_CHUNK)
     let lastResult: string | null = null
     for (let i = 0; i < steps; i++) {
       lastResult = useGameStore.getState().advanceEgg()
@@ -188,7 +188,7 @@ describe('useGameStore 孵化系统（抽蛋 → 浇灌 → 孵化）', () => {
     useGameStore.getState().drawEgg()
     const drawnSpecies = useGameStore.getState().state.egg!.species
 
-    const steps = Math.ceil(EGG_COMMON_COST / EGG_ADVANCE_CHUNK)
+    const steps = Math.ceil(eggCost(drawnSpecies) / EGG_ADVANCE_CHUNK)
     for (let i = 0; i < steps; i++) {
       useGameStore.getState().advanceEgg()
     }
@@ -212,14 +212,11 @@ describe('useGameStore 孵化系统（抽蛋 → 浇灌 → 孵化）', () => {
     useGameStore.setState((prev) => ({
       state: {
         ...prev.state,
-        ownedCreatures: {
-          mossbear: { nickname: 'mossbear' },
-          spiritfox: { nickname: 'spiritfox' },
-          cloudsheep: { nickname: 'cloudsheep' },
-          mistdeer: { nickname: 'mistdeer' },
-          streamturtle: { nickname: 'streamturtle' },
-          // stardragon 是唯一没拥有的
-        },
+        ownedCreatures: Object.fromEntries(
+          Object.keys(CREATURES)
+            .filter((species) => species !== 'stardragon')
+            .map((species) => [species, { nickname: species }]),
+        ),
       },
     }))
     useGameStore.getState().drawEgg()
@@ -230,14 +227,9 @@ describe('useGameStore 孵化系统（抽蛋 → 浇灌 → 孵化）', () => {
     useGameStore.setState((prev) => ({
       state: {
         ...prev.state,
-        ownedCreatures: {
-          mossbear: { nickname: 'mossbear' },
-          spiritfox: { nickname: 'spiritfox' },
-          cloudsheep: { nickname: 'cloudsheep' },
-          mistdeer: { nickname: 'mistdeer' },
-          streamturtle: { nickname: 'streamturtle' },
-          stardragon: { nickname: 'stardragon' },
-        },
+        ownedCreatures: Object.fromEntries(
+          Object.keys(CREATURES).map((species) => [species, { nickname: species }]),
+        ),
       },
     }))
     expect(useGameStore.getState().drawEgg()).toBe(false)

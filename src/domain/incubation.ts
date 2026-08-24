@@ -34,7 +34,7 @@ export function drawEggSpecies(ownedCreatures: Record<string, OwnedCreatureRecor
   return pool[Math.floor(Math.random() * pool.length)]
 }
 
-/** 孵化成本按蛋里生物的稀有度定；当前全是 common（60⭐），rare 常量留给未来更强的生物 */
+/** 孵化成本按蛋里生物的稀有度定；稀有与传说使用较高成本。 */
 export function eggCost(species: string): number {
   const rarity = CREATURES[species]?.rarity ?? 'common'
   return rarity === 'common' ? EGG_COMMON_COST : EGG_RARE_COST
@@ -70,8 +70,7 @@ export function advanceEgg(egg: EggState, stardustBalance: number): AdvanceEggRe
 
 /**
  * 传说生物走里程碑解锁，完全不依赖概率（PRD 3.3.4）：累计 30 次每日反思。
- * 当前没有配置任何 legendary 生物（全部重划为 common），此函数恒返回 null——
- * 保留是为了未来加入更强生物时里程碑通道直接可用。幂等：已拥有时不重复触发。
+ * 达成里程碑时解锁图鉴中的第一只传说生物。幂等：已拥有时不重复触发。
  */
 export function checkLegendaryUnlock(
   reflectionCount: number,

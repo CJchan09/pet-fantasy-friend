@@ -4,8 +4,8 @@ import { CREATURES, STARTER_SPECIES, creatureAsset } from '@/config/creatures'
 import { useGameStore } from '@/store/useGameStore'
 
 /**
- * 首次进入：三选一 + 命名（PRD：从 3 只中选初始宠物）。
- * 名单固定在 STARTER_SPECIES——不能按 rarity 过滤（现在 6 只全是 common，会把整个图鉴摆出来）。
+ * 首次进入：三选一 + 命名。
+ * 名单固定在 STARTER_SPECIES，不能按 rarity 过滤，否则会把整个普通图鉴摆出来。
  * 老版本（阶段一线上用户）已经在养宠物了，迁移时 hasChosenStarter 会被设为 true，不会看到这一页。
  */
 export function StarterPickerScreen() {
@@ -42,17 +42,19 @@ export function StarterPickerScreen() {
               key={species}
               type="button"
               onClick={() => handleSelect(species)}
-              className={`flex flex-col items-center gap-2 rounded-[20px] bg-card p-3 shadow-soft transition-transform ${
+              className={`flex min-w-0 flex-col items-center gap-2 rounded-[20px] bg-card p-3 shadow-soft transition-transform ${
                 isSelected ? 'scale-105 ring-2 ring-gold-500' : 'opacity-70'
               }`}
             >
               <img
                 src={creatureAsset(species, 'eyes-open')}
                 alt={t(creature.speciesKey)}
-                className="h-20 w-auto object-contain"
+                className="aspect-square h-auto w-full object-contain"
                 draggable={false}
               />
-              <span className="text-xs font-medium text-ink-700">{t(creature.speciesKey)}</span>
+              <span className="w-full break-words text-center text-xs font-medium text-ink-700">
+                {t(creature.speciesKey)}
+              </span>
             </button>
           )
         })}

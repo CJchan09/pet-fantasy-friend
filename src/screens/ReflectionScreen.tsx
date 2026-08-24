@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { ReflectionForm } from '@/components/reflection/ReflectionForm'
 import { PetSprite } from '@/components/pet/PetSprite'
 import { usePetStore } from '@/store/usePetStore'
+import { petStageForLevel } from '@/domain/pet'
 
 interface ReflectionScreenProps {
   onBack: () => void
@@ -40,9 +41,10 @@ export function ReflectionScreen({ onBack }: ReflectionScreenProps) {
       <div className="mb-3 flex h-20 items-end justify-center overflow-hidden">
         <PetSprite
           species={pet.species}
+          stage={petStageForLevel(pet.level)}
           joy={false}
           alt={pet.name}
-          className="h-24 w-auto translate-y-4 object-contain opacity-90"
+          className="h-24 w-24 translate-y-4 opacity-90"
         />
       </div>
 

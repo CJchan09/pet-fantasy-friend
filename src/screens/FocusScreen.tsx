@@ -5,6 +5,7 @@ import { useFocusStore } from '@/store/useFocusStore'
 import { usePetStore } from '@/store/usePetStore'
 import { PetSprite } from '@/components/pet/PetSprite'
 import { FOCUS_SESSION_MINUTES } from '@/config/gameBalance'
+import { petStageForLevel } from '@/domain/pet'
 
 interface FocusScreenProps {
   onBack: () => void
@@ -100,10 +101,11 @@ export function FocusScreen({ onBack }: FocusScreenProps) {
       <div className="mt-8 flex flex-col items-center">
         <PetSprite
           species={pet.species}
+          stage={petStageForLevel(pet.level)}
           joy={false}
           lifecycleStatus="active"
           alt={pet.name}
-          className="h-40 w-auto object-contain [filter:drop-shadow(0_18px_26px_rgba(90,78,55,0.18))] sm:h-56"
+          className="h-40 w-40 [filter:drop-shadow(0_18px_26px_rgba(90,78,55,0.18))] sm:h-56 sm:w-56"
         />
         <div className="-mt-3 h-4 w-32 [background:radial-gradient(50%_50%_at_50%_50%,rgba(90,78,55,0.15),transparent_70%)]" />
       </div>

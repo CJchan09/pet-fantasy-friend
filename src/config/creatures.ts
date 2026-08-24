@@ -4,11 +4,7 @@ import type { CreatureRarity } from '@/types'
  * 生物档案与美术资产索引。
  * 资产由 scripts/convertCreatures.mjs 从设计侧 PNG 生成，位于 public/creatures/。
  *
- * 稀有度规划（CJ 2026-08-10 决定）：
- * - 当前 6 只全部是 common：只有一个形态（maxStage: 1），孵出来就是最终样子。
- * - 未来「更强」的生物用 rare / legendary：maxStage 2–3，可以随成长进化成不同的样子，
- *   届时设计侧需交付对应生物的 S2/S3 阶段美术，加进 CREATURES 并把 maxStage 调到对应值即可，
- *   抽蛋池、图鉴、稀有度标签都会自动跟上（都是从这份配置派生的）。
+ * 20 只新美术均有幼年、成年、老年、仙人级四阶段；游戏会根据等级加载 S1-S4。
  */
 
 export type CreatureState =
@@ -18,6 +14,8 @@ export type CreatureState =
   | 'joy'
   | 'eyes-open'
   | 'eyes-closed'
+  | 'walk-a'
+  | 'walk-b'
 
 export interface CreatureDef {
   slug: string
@@ -32,8 +30,7 @@ export interface CreatureDef {
   defaultNameKey: string
   rarity: CreatureRarity
   /**
-   * 进化形态数量。1 = 只有一个样子（当前所有 common）；
-   * 未来更强的生物 >1，等级到阈值后立绘切到 S2/S3（美术就位后实现切换逻辑）。
+   * 已交付的生命阶段数量。
    */
   maxStage: number
 }
@@ -45,7 +42,7 @@ export const CREATURES: Record<string, CreatureDef> = {
     sceneKey: 'creature.mossbear.scene',
     defaultNameKey: 'creature.mossbear.defaultName',
     rarity: 'common',
-    maxStage: 1,
+    maxStage: 4,
   },
   spiritfox: {
     slug: 'spiritfox',
@@ -53,7 +50,7 @@ export const CREATURES: Record<string, CreatureDef> = {
     sceneKey: 'creature.spiritfox.scene',
     defaultNameKey: 'creature.spiritfox.defaultName',
     rarity: 'common',
-    maxStage: 1,
+    maxStage: 4,
   },
   cloudsheep: {
     slug: 'cloudsheep',
@@ -61,7 +58,7 @@ export const CREATURES: Record<string, CreatureDef> = {
     sceneKey: 'creature.cloudsheep.scene',
     defaultNameKey: 'creature.cloudsheep.defaultName',
     rarity: 'common',
-    maxStage: 1,
+    maxStage: 4,
   },
   mistdeer: {
     slug: 'mistdeer',
@@ -69,7 +66,7 @@ export const CREATURES: Record<string, CreatureDef> = {
     sceneKey: 'creature.mistdeer.scene',
     defaultNameKey: 'creature.mistdeer.defaultName',
     rarity: 'common',
-    maxStage: 1,
+    maxStage: 4,
   },
   streamturtle: {
     slug: 'streamturtle',
@@ -77,26 +74,137 @@ export const CREATURES: Record<string, CreatureDef> = {
     sceneKey: 'creature.streamturtle.scene',
     defaultNameKey: 'creature.streamturtle.defaultName',
     rarity: 'common',
-    maxStage: 1,
+    maxStage: 4,
+  },
+  fireflyrabbit: {
+    slug: 'fireflyrabbit',
+    speciesKey: 'creature.fireflyrabbit.species',
+    sceneKey: 'creature.fireflyrabbit.scene',
+    defaultNameKey: 'creature.fireflyrabbit.defaultName',
+    rarity: 'common',
+    maxStage: 4,
+  },
+  dewdropcat: {
+    slug: 'dewdropcat',
+    speciesKey: 'creature.dewdropcat.species',
+    sceneKey: 'creature.dewdropcat.scene',
+    defaultNameKey: 'creature.dewdropcat.defaultName',
+    rarity: 'common',
+    maxStage: 4,
+  },
+  honeysparrow: {
+    slug: 'honeysparrow',
+    speciesKey: 'creature.honeysparrow.species',
+    sceneKey: 'creature.honeysparrow.scene',
+    defaultNameKey: 'creature.honeysparrow.defaultName',
+    rarity: 'common',
+    maxStage: 4,
+  },
+  jellyfrog: {
+    slug: 'jellyfrog',
+    speciesKey: 'creature.jellyfrog.species',
+    sceneKey: 'creature.jellyfrog.scene',
+    defaultNameKey: 'creature.jellyfrog.defaultName',
+    rarity: 'common',
+    maxStage: 4,
+  },
+  cottonraccoon: {
+    slug: 'cottonraccoon',
+    speciesKey: 'creature.cottonraccoon.species',
+    sceneKey: 'creature.cottonraccoon.scene',
+    defaultNameKey: 'creature.cottonraccoon.defaultName',
+    rarity: 'common',
+    maxStage: 4,
+  },
+  coralwhale: {
+    slug: 'coralwhale',
+    speciesKey: 'creature.coralwhale.species',
+    sceneKey: 'creature.coralwhale.scene',
+    defaultNameKey: 'creature.coralwhale.defaultName',
+    rarity: 'rare',
+    maxStage: 4,
+  },
+  amberwolf: {
+    slug: 'amberwolf',
+    speciesKey: 'creature.amberwolf.species',
+    sceneKey: 'creature.amberwolf.scene',
+    defaultNameKey: 'creature.amberwolf.defaultName',
+    rarity: 'rare',
+    maxStage: 4,
+  },
+  crystalfoal: {
+    slug: 'crystalfoal',
+    speciesKey: 'creature.crystalfoal.species',
+    sceneKey: 'creature.crystalfoal.scene',
+    defaultNameKey: 'creature.crystalfoal.defaultName',
+    rarity: 'rare',
+    maxStage: 4,
+  },
+  emberturtle: {
+    slug: 'emberturtle',
+    speciesKey: 'creature.emberturtle.species',
+    sceneKey: 'creature.emberturtle.scene',
+    defaultNameKey: 'creature.emberturtle.defaultName',
+    rarity: 'rare',
+    maxStage: 4,
+  },
+  aurorafox: {
+    slug: 'aurorafox',
+    speciesKey: 'creature.aurorafox.species',
+    sceneKey: 'creature.aurorafox.scene',
+    defaultNameKey: 'creature.aurorafox.defaultName',
+    rarity: 'rare',
+    maxStage: 4,
+  },
+  stardustotter: {
+    slug: 'stardustotter',
+    speciesKey: 'creature.stardustotter.species',
+    sceneKey: 'creature.stardustotter.scene',
+    defaultNameKey: 'creature.stardustotter.defaultName',
+    rarity: 'rare',
+    maxStage: 4,
   },
   stardragon: {
     slug: 'stardragon',
     speciesKey: 'creature.stardragon.species',
     sceneKey: 'creature.stardragon.scene',
     defaultNameKey: 'creature.stardragon.defaultName',
-    rarity: 'common',
-    maxStage: 1,
+    rarity: 'legendary',
+    maxStage: 4,
+  },
+  nightphoenix: {
+    slug: 'nightphoenix',
+    speciesKey: 'creature.nightphoenix.species',
+    sceneKey: 'creature.nightphoenix.scene',
+    defaultNameKey: 'creature.nightphoenix.defaultName',
+    rarity: 'legendary',
+    maxStage: 4,
+  },
+  rainbowqilin: {
+    slug: 'rainbowqilin',
+    speciesKey: 'creature.rainbowqilin.species',
+    sceneKey: 'creature.rainbowqilin.scene',
+    defaultNameKey: 'creature.rainbowqilin.defaultName',
+    rarity: 'legendary',
+    maxStage: 4,
+  },
+  sharkmermaid: {
+    slug: 'sharkmermaid',
+    speciesKey: 'creature.sharkmermaid.species',
+    sceneKey: 'creature.sharkmermaid.scene',
+    defaultNameKey: 'creature.sharkmermaid.defaultName',
+    rarity: 'legendary',
+    maxStage: 4,
   },
 }
 
 export const DEFAULT_SPECIES = 'mossbear'
 
-/**
- * 首次进入的起始名单（CJ 2026-08-11 改版：6 只里除星岚龙外全部 5 只都可选）。
- * 星岚龙（stardragon）刻意不放进起始名单——它是留给抽蛋系统的「隐藏」生物，
- * 只能在开局之后通过孵化遇见，营造「还有一只没见过」的悬念。
- */
-export const STARTER_SPECIES = ['mossbear', 'spiritfox', 'cloudsheep', 'mistdeer', 'streamturtle']
+/** 首次进入固定三选一；其余生物只从抽蛋池取得。 */
+export const STARTER_SPECIES = ['mossbear', 'spiritfox', 'cloudsheep']
+
+/** 已具备走路 A/B、疲倦和沉睡动作帧的生物。 */
+export const ACTION_FRAME_SPECIES = new Set(Object.keys(CREATURES))
 
 export const CREATURES_BY_RARITY: Record<CreatureRarity, string[]> = {
   common: Object.values(CREATURES)
@@ -122,10 +230,19 @@ export function creatureAsset(
   return `${import.meta.env.BASE_URL}creatures/${species}_s${stage}_${state}.webp`
 }
 
+const SPECIES_WITH_EGG_ART = new Set([
+  'mossbear',
+  'spiritfox',
+  'cloudsheep',
+  'mistdeer',
+  'streamturtle',
+  'stardragon',
+])
+
 /**
- * 蛋美术资产：由 scripts/convertEggAssets.mjs 从设计侧 PNG（../Image/Egg/）抠透明背景转出，
- * 位于 public/eggs/。抽蛋时物种已定，所以孵化中直接显示对应生物的蛋（不是通用「神秘蛋」占位）。
+ * 已有专属蛋图的物种显示对应蛋；其余新物种暂用中性星光蛋，等专属蛋图交付后自动扩充名单。
  */
 export function eggAsset(species: string): string {
-  return `${import.meta.env.BASE_URL}eggs/${species}.webp`
+  const assetName = SPECIES_WITH_EGG_ART.has(species) ? species : 'generic'
+  return `${import.meta.env.BASE_URL}eggs/${assetName}.webp`
 }

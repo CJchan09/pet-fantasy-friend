@@ -10,6 +10,7 @@ import {
 import {
   EGG_ADVANCE_CHUNK,
   EGG_COMMON_COST,
+  EGG_RARE_COST,
   LEGENDARY_UNLOCK_REFLECTION_COUNT,
 } from '@/config/gameBalance'
 import { CREATURES } from '@/config/creatures'
@@ -51,10 +52,10 @@ describe('drawEggSpecies 抽蛋（不重复）', () => {
 })
 
 describe('eggCost', () => {
-  it('当前全部生物都是 common，成本一致', () => {
-    for (const species of ALL_SPECIES) {
-      expect(eggCost(species)).toBe(EGG_COMMON_COST)
-    }
+  it('普通与高稀有度使用各自孵化成本', () => {
+    expect(eggCost('mossbear')).toBe(EGG_COMMON_COST)
+    expect(eggCost('amberwolf')).toBe(EGG_RARE_COST)
+    expect(eggCost('stardragon')).toBe(EGG_RARE_COST)
   })
 })
 
@@ -81,9 +82,14 @@ describe('advanceEgg 浇灌与孵化', () => {
   })
 })
 
-describe('checkLegendaryUnlock（当前没有 legendary 生物，通道保留给未来）', () => {
-  it('没有配置 legendary 生物时恒返回 null，即使达到里程碑次数', () => {
-    expect(checkLegendaryUnlock(LEGENDARY_UNLOCK_REFLECTION_COUNT, {})).toBeNull()
-    expect(checkLegendaryUnlock(LEGENDARY_UNLOCK_REFLECTION_COUNT + 100, {})).toBeNull()
+describe('checkLegendaryUnlock', () => {
+  it('达到里程碑后解锁第一只尚未拥有的传说生物', () => {
+    expect(checkLegendaryUnlock(LEGENDARY_UNLOCK_REFLECTION_COUNT - 1, {})).toBeNull()
+    expect(checkLegendaryUnlock(LEGENDARY_UNLOCK_REFLECTION_COUNT, {})).toBe('stardragon')
+    expect(
+      checkLegendaryUnlock(LEGENDARY_UNLOCK_REFLECTION_COUNT, {
+        stardragon: { nickname: '星岚' },
+      }),
+    ).toBeNull()
   })
 })

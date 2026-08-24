@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   STORAGE_KEY,
+  MAX_SAVE_SIZE_BYTES,
   createDefaultState,
   exportStateAsJson,
   importStateFromJson,
@@ -45,6 +46,19 @@ describe('localStorageAdapter', () => {
     expect(migrated.ownedCreatures.mossbear).toEqual({ nickname: '苔苔' })
     expect(migrated.tasks).toEqual([])
     expect(migrated.animalChessWins).toEqual([])
+  })
+
+  it('读取旧版 5 级上限存档时，会按亲密度自动修复等级', () => {
+    const legacy = {
+      ...createDefaultState(),
+      pet: { name: '苔苔', species: 'mossbear', intimacy: 275, level: 5 },
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(legacy))
+
+    const migrated = loadState()
+
+    expect(migrated.pet.level).toBe(6)
+    expect(migrated.pet.intimacy).toBe(275)
   })
 
   it('v3 旧格式的蛋（{rarity, progress}）迁移为「就地抽定生物」并保留进度', () => {
@@ -137,5 +151,27 @@ describe('localStorageAdapter', () => {
   it('导入格式不对的 JSON 时返回 null', () => {
     expect(importStateFromJson('{"foo": "bar"}')).toBeNull()
     expect(importStateFromJson('not json at all')).toBeNull()
+  })
+
+  it('拒绝类型伪造、未知生物和未来版本的存档', () => {
+    const valid = createDefaultState()
+    expect(importStateFromJson(JSON.stringify({ ...valid, hasChosenStarter: 'yes' }))).toBeNull()
+    expect(
+      importStateFromJson(
+        JSON.stringify({ ...valid, pet: { ...valid.pet, species: 'not-a-creature' } }),
+      ),
+    ).toBeNull()
+    expect(
+      importStateFromJson(JSON.stringify({ ...valid, schemaVersion: valid.schemaVersion + 1 })),
+    ).toBeNull()
+  })
+
+  it('拒绝超过存档大小上限的数据', () => {
+    const valid = createDefaultState()
+    const oversized = JSON.stringify({
+      ...valid,
+      pet: { ...valid.pet, name: 'x'.repeat(MAX_SAVE_SIZE_BYTES) },
+    })
+    expect(importStateFromJson(oversized)).toBeNull()
   })
 })

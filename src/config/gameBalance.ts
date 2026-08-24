@@ -35,7 +35,7 @@ export const PRIMARY_SOURCES_DAILY_CAP = REFLECTION_DAILY_CAP + TASK_DAILY_CAP
 export const FEED_STARDUST_COST = 10
 export const FEED_INTIMACY_GAIN = 10
 export const INTIMACY_PER_LEVEL = 50
-export const MAX_LEVEL_STAGE_ONE = 5 // 阶段一只做数值/文字标签展示，不含进化动画
+export const MAX_PET_LEVEL = 50
 
 /**
  * 孵化系统数值（PRD 3.3.4 只定了「不同蛋消耗不同星尘」的规则，没给具体数字，这里落地决定）：

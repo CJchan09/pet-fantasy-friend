@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import type { PetState } from '@/types'
 import { CREATURES, DEFAULT_SPECIES } from '@/config/creatures'
-import { levelProgress } from '@/domain/pet'
+import { levelProgress, petStageForLevel } from '@/domain/pet'
 import type { PetLifecycleStatus } from '@/domain/petLifecycle'
 import { PetSprite } from './PetSprite'
 
@@ -36,6 +36,7 @@ export function PetScene({ pet, joy, lifecycleStatus, canFeed, feedCost, onFeed 
   const { t } = useTranslation()
   const creature = CREATURES[pet.species] ?? CREATURES[DEFAULT_SPECIES]
   const progress = levelProgress(pet.intimacy)
+  const stage = petStageForLevel(pet.level)
   const isDormant = lifecycleStatus === 'dormant'
   const isTired = lifecycleStatus === 'tired'
 
@@ -73,10 +74,11 @@ export function PetScene({ pet, joy, lifecycleStatus, canFeed, feedCost, onFeed 
       >
         <PetSprite
           species={pet.species}
+          stage={stage}
           joy={joy}
           lifecycleStatus={lifecycleStatus}
           alt={pet.name}
-          className="h-52 w-auto object-contain [filter:drop-shadow(0_24px_32px_rgba(90,78,55,0.18))] sm:h-64 lg:h-72"
+          className="h-52 w-52 [filter:drop-shadow(0_24px_32px_rgba(90,78,55,0.18))] sm:h-64 sm:w-64 lg:h-72 lg:w-72"
         />
         <div className="-mt-3 h-5 w-40 [background:radial-gradient(50%_50%_at_50%_50%,rgba(90,78,55,0.16),transparent_70%)]" />
       </div>

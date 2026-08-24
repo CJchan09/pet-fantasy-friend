@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { creatureAsset } from '@/config/creatures'
+import { ACTION_FRAME_SPECIES, creatureAsset } from '@/config/creatures'
 import type { PetLifecycleStatus } from '@/domain/petLifecycle'
 
 interface PetSpriteProps {
   species: string
+  stage?: 1 | 2 | 3 | 4
   /** 喂养后短暂显示喜悦帧 */
   joy: boolean
   lifecycleStatus?: PetLifecycleStatus
@@ -13,44 +14,55 @@ interface PetSpriteProps {
 
 const BLINK_MIN_INTERVAL_MS = 3500
 const BLINK_MAX_INTERVAL_MS = 7000
-const BLINK_DURATION_MS = 170
+const BLINK_DURATION_MS = 650
 
-// 「活着」的循环小动作：待机久了偶尔快闪一下喜悦帧（没有额外的「精神一下」美术，
-// 借用喂养喜悦帧最省事），跟眨眼是两条独立计时器，互不打架——同一瞬间两者都想显示时
-// 直接让 perk 赢（元素级的一次点缀，视觉上盖掉那一帧眨眼不明显）。
-const PERK_MIN_INTERVAL_MS = 6000
-const PERK_MAX_INTERVAL_MS = 12000
-const PERK_DURATION_MS = 450
+const WALK_MIN_INTERVAL_MS = 6000
+const WALK_MAX_INTERVAL_MS = 12000
+const WALK_FRAME_DURATION_MS = 240
+const FRAME_CROSSFADE_MS = 140
+const WALK_SEQUENCE: Array<0 | 1 | 2> = [1, 2, 1, 2, 1, 0]
 
 /**
  * 宠物立绘：
  * - active：睁眼帧为默认，随机间隔眨眼（睁眼/闭眼两帧姿势对齐，直接切换）；
- *   另外叠加一条更慢的「精神一下」循环——借用喜悦帧短暂一闪，制造持续的「动起来」感，
- *   不是新增美术，是现有帧的循环播放（CJ 2026-08-12 要求）
- * - tired/dormant：显示对应的静态状态帧，不眨眼也不做 perk（PRD 3.3.3：疲倦动作变慢，沉睡蜷缩不动）
- * - 喂养时（joy=true）优先显示喜悦帧，无论生命周期状态如何，且暂停 perk 循环（避免两个喜悦帧来源打架）
+ *   有动作帧的生物会偶尔原地走两步，跟眨眼是两条独立计时器。
+ * - tired/dormant：显示对应的静态状态帧，不眨眼也不走动（PRD 3.3.3）。
+ * - 喂养时（joy=true）优先显示喜悦帧，并暂停其他循环。
  */
-export function PetSprite({ species, joy, lifecycleStatus = 'active', alt, className }: PetSpriteProps) {
+export function PetSprite({
+  species,
+  stage = 1,
+  joy,
+  lifecycleStatus = 'active',
+  alt,
+  className,
+}: PetSpriteProps) {
   const [blinking, setBlinking] = useState(false)
-  const [perking, setPerking] = useState(false)
+  const [walkFrame, setWalkFrame] = useState<0 | 1 | 2>(0)
   const timersRef = useRef<number[]>([])
-  const perkTimersRef = useRef<number[]>([])
+  const walkTimersRef = useRef<number[]>([])
+  const transitionTimerRef = useRef<number | null>(null)
 
-  const eyesOpen = creatureAsset(species, 'eyes-open')
-  const eyesClosed = creatureAsset(species, 'eyes-closed')
-  const joyFrame = creatureAsset(species, 'joy')
-  const tiredFrame = creatureAsset(species, 'tired')
-  const dormantFrame = creatureAsset(species, 'dormant')
+  const eyesOpen = creatureAsset(species, 'eyes-open', stage)
+  const eyesClosed = creatureAsset(species, 'eyes-closed', stage)
+  const joyFrame = creatureAsset(species, 'joy', stage)
+  const tiredFrame = creatureAsset(species, 'tired', stage)
+  const dormantFrame = creatureAsset(species, 'dormant', stage)
+  const walkAFrame = creatureAsset(species, 'walk-a', stage)
+  const walkBFrame = creatureAsset(species, 'walk-b', stage)
 
   const isActive = lifecycleStatus === 'active'
+  const hasActionFrames = ACTION_FRAME_SPECIES.has(species)
 
   // 预加载其他帧，避免切换时闪空
   useEffect(() => {
-    for (const src of [eyesClosed, joyFrame, tiredFrame, dormantFrame]) {
+    const sources = [eyesClosed, joyFrame, tiredFrame, dormantFrame]
+    if (hasActionFrames) sources.push(walkAFrame, walkBFrame)
+    for (const src of sources) {
       const img = new Image()
       img.src = src
     }
-  }, [eyesClosed, joyFrame, tiredFrame, dormantFrame])
+  }, [dormantFrame, eyesClosed, hasActionFrames, joyFrame, tiredFrame, walkAFrame, walkBFrame])
 
   useEffect(() => {
     if (joy || !isActive) {
@@ -87,50 +99,104 @@ export function PetSprite({ species, joy, lifecycleStatus = 'active', alt, class
   }, [joy, isActive])
 
   useEffect(() => {
-    if (joy || !isActive) {
+    if (joy || !isActive || !hasActionFrames) {
       return
     }
     let cancelled = false
 
-    function schedulePerk() {
+    function scheduleWalk() {
       const delay =
-        PERK_MIN_INTERVAL_MS + Math.random() * (PERK_MAX_INTERVAL_MS - PERK_MIN_INTERVAL_MS)
-      perkTimersRef.current.push(
+        WALK_MIN_INTERVAL_MS + Math.random() * (WALK_MAX_INTERVAL_MS - WALK_MIN_INTERVAL_MS)
+      walkTimersRef.current.push(
         window.setTimeout(() => {
           if (cancelled) return
-          setPerking(true)
-          perkTimersRef.current.push(
-            window.setTimeout(() => {
-              if (cancelled) return
-              setPerking(false)
-              schedulePerk()
-            }, PERK_DURATION_MS),
-          )
+          function playStep(index: number) {
+            if (cancelled) return
+            setWalkFrame(WALK_SEQUENCE[index])
+            if (index === WALK_SEQUENCE.length - 1) {
+              scheduleWalk()
+              return
+            }
+            walkTimersRef.current.push(
+              window.setTimeout(() => playStep(index + 1), WALK_FRAME_DURATION_MS),
+            )
+          }
+          playStep(0)
         }, delay),
       )
     }
 
-    schedulePerk()
+    scheduleWalk()
     return () => {
       cancelled = true
-      perkTimersRef.current.forEach((id) => window.clearTimeout(id))
-      perkTimersRef.current = []
-      setPerking(false)
+      walkTimersRef.current.forEach((id) => window.clearTimeout(id))
+      walkTimersRef.current = []
+      setWalkFrame(0)
     }
-  }, [joy, isActive])
+  }, [hasActionFrames, joy, isActive])
 
-  let src = eyesOpen
+  let targetSrc = eyesOpen
   if (joy) {
-    src = joyFrame
+    targetSrc = joyFrame
   } else if (lifecycleStatus === 'dormant') {
-    src = dormantFrame
+    targetSrc = dormantFrame
   } else if (lifecycleStatus === 'tired') {
-    src = tiredFrame
-  } else if (perking) {
-    src = joyFrame
+    targetSrc = tiredFrame
+  } else if (walkFrame === 1) {
+    targetSrc = walkAFrame
+  } else if (walkFrame === 2) {
+    targetSrc = walkBFrame
   } else {
-    src = blinking ? eyesClosed : eyesOpen
+    targetSrc = blinking ? eyesClosed : eyesOpen
   }
 
-  return <img src={src} alt={alt} className={className} draggable={false} />
+  const [displayedSrc, setDisplayedSrc] = useState(targetSrc)
+  const [leavingSrc, setLeavingSrc] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (targetSrc === displayedSrc) return
+
+    setLeavingSrc(displayedSrc)
+    setDisplayedSrc(targetSrc)
+    if (transitionTimerRef.current !== null) {
+      window.clearTimeout(transitionTimerRef.current)
+    }
+    transitionTimerRef.current = window.setTimeout(() => {
+      setLeavingSrc(null)
+      transitionTimerRef.current = null
+    }, FRAME_CROSSFADE_MS)
+  }, [displayedSrc, targetSrc])
+
+  useEffect(
+    () => () => {
+      if (transitionTimerRef.current !== null) {
+        window.clearTimeout(transitionTimerRef.current)
+      }
+    },
+    [],
+  )
+
+  return (
+    <span className={`relative inline-block flex-none ${className ?? ''}`} role="img" aria-label={alt}>
+      <img
+        key={displayedSrc}
+        src={displayedSrc}
+        alt=""
+        aria-hidden="true"
+        className="animate-sprite-frame-in absolute inset-0 h-full w-full object-contain"
+        draggable={false}
+        data-current-frame="true"
+      />
+      {leavingSrc && (
+        <img
+          key={`leaving-${leavingSrc}`}
+          src={leavingSrc}
+          alt=""
+          aria-hidden="true"
+          className="animate-sprite-frame-out absolute inset-0 h-full w-full object-contain"
+          draggable={false}
+        />
+      )}
+    </span>
+  )
 }

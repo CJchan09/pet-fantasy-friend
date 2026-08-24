@@ -2,25 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAnimalChessStore } from '@/store/useAnimalChessStore'
 import { isHumanWin, type AnimalChessResult } from '@/domain/animalChess'
+import { isTrustedGameOverMessage } from '@/domain/animalChessMessage'
 
 interface AnimalChessScreenProps {
   onBack: () => void
-}
-
-interface GameOverMessage {
-  source: 'dou-shou-qi'
-  type: 'gameOver'
-  winner: 'red' | 'blue'
-  aiOwner: 'red' | 'blue' | null
-}
-
-function isGameOverMessage(data: unknown): data is GameOverMessage {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    (data as Record<string, unknown>).source === 'dou-shou-qi' &&
-    (data as Record<string, unknown>).type === 'gameOver'
-  )
 }
 
 /**
@@ -35,6 +20,7 @@ export function AnimalChessScreen({ onBack }: AnimalChessScreenProps) {
   const atDailyLimit = !canWin
   const [banner, setBanner] = useState<'rewarded' | 'won-no-reward' | null>(null)
   const bannerTimerRef = useRef<number | undefined>(undefined)
+  const gameFrameRef = useRef<HTMLIFrameElement>(null)
 
   // 游戏内部文案跟着 App 当前语言走（见 scripts/convertAnimalChessAssets.mjs 接入的 i18n）
   const gameLang = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'zh-CN'
@@ -42,10 +28,13 @@ export function AnimalChessScreen({ onBack }: AnimalChessScreenProps) {
 
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
-      if (event.origin !== window.location.origin) {
-        return
-      }
-      if (!isGameOverMessage(event.data)) {
+      if (
+        !isTrustedGameOverMessage(
+          event,
+          gameFrameRef.current?.contentWindow ?? null,
+          window.location.origin,
+        )
+      ) {
         return
       }
       const result: AnimalChessResult = { winner: event.data.winner, aiOwner: event.data.aiOwner }
@@ -99,6 +88,7 @@ export function AnimalChessScreen({ onBack }: AnimalChessScreenProps) {
       )}
 
       <iframe
+        ref={gameFrameRef}
         key={gameLang}
         src={gameUrl}
         title={t('animalChess.title')}
