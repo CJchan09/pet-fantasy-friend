@@ -117,7 +117,15 @@
     "dailyLimitReachedHint": "You've used up today's focus sessions",
     "completedTitle": "Focus session complete",
     "completedHint": "Earned {{reward}} ⭐",
-    "backButton": "Back"
+    "backButton": "Back",
+    "soundscapeLabel": "Ambient sound",
+    "volumeLabel": "Volume",
+    "soundscape": {
+      "off": "Off",
+      "brown": "Brown",
+      "rain": "Rain",
+      "ocean": "Ocean"
+    }
   },
   "tasks": {
     "title": "My tasks",

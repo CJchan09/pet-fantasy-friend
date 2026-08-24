@@ -117,7 +117,15 @@
     "dailyLimitReachedHint": "今天的专注次数已经用完了",
     "completedTitle": "完成一次专注",
     "completedHint": "获得 {{reward}} ⭐",
-    "backButton": "返回"
+    "backButton": "返回",
+    "soundscapeLabel": "环境音",
+    "volumeLabel": "音量",
+    "soundscape": {
+      "off": "静音",
+      "brown": "棕噪",
+      "rain": "雨夜",
+      "ocean": "海潮"
+    }
   },
   "tasks": {
     "title": "我的任务",

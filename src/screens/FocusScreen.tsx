@@ -4,8 +4,13 @@ import { useFocusTimerStore } from '@/store/useFocusTimerStore'
 import { useFocusStore } from '@/store/useFocusStore'
 import { usePetStore } from '@/store/usePetStore'
 import { PetSprite } from '@/components/pet/PetSprite'
+import {
+  SoundscapeControls,
+  type SoundscapeSelection,
+} from '@/components/focus/SoundscapeControls'
 import { FOCUS_SESSION_MINUTES } from '@/config/gameBalance'
 import { petStageForLevel } from '@/domain/pet'
+import { startSoundscape, type SoundscapePreset } from '@/audio/proceduralSoundscape'
 
 interface FocusScreenProps {
   onBack: () => void
@@ -29,7 +34,17 @@ export function FocusScreen({ onBack }: FocusScreenProps) {
   const { pet } = usePetStore()
 
   const [justCompleted, setJustCompleted] = useState(false)
+  const [soundscape, setSoundscape] = useState<SoundscapeSelection>('off')
+  const [soundVolume, setSoundVolume] = useState(0.34)
   const completionHandledRef = useRef(false)
+  const soundscapeHandleRef = useRef<ReturnType<typeof startSoundscape>>(null)
+
+  useEffect(
+    () => () => {
+      soundscapeHandleRef.current?.stop()
+    },
+    [],
+  )
 
   useEffect(() => {
     if (!running) {
@@ -44,6 +59,9 @@ export function FocusScreen({ onBack }: FocusScreenProps) {
       completionHandledRef.current = true
       completeFocusSession()
       cancel()
+      soundscapeHandleRef.current?.stop()
+      soundscapeHandleRef.current = null
+      setSoundscape('off')
       setJustCompleted(true)
     }
   }, [running, secondsRemaining, completeFocusSession, cancel])
@@ -56,6 +74,24 @@ export function FocusScreen({ onBack }: FocusScreenProps) {
   function handleCancel() {
     completionHandledRef.current = false
     cancel()
+    soundscapeHandleRef.current?.stop()
+    soundscapeHandleRef.current = null
+    setSoundscape('off')
+  }
+
+  function handleSoundscapeSelect(selection: SoundscapeSelection) {
+    soundscapeHandleRef.current?.stop()
+    soundscapeHandleRef.current = null
+    setSoundscape(selection)
+
+    if (selection !== 'off') {
+      soundscapeHandleRef.current = startSoundscape(selection as SoundscapePreset, soundVolume)
+    }
+  }
+
+  function handleVolumeChange(volume: number) {
+    setSoundVolume(volume)
+    soundscapeHandleRef.current?.setVolume(volume)
   }
 
   if (justCompleted) {
@@ -109,6 +145,13 @@ export function FocusScreen({ onBack }: FocusScreenProps) {
         />
         <div className="-mt-3 h-4 w-32 [background:radial-gradient(50%_50%_at_50%_50%,rgba(90,78,55,0.15),transparent_70%)]" />
       </div>
+
+      <SoundscapeControls
+        selection={soundscape}
+        volume={soundVolume}
+        onSelect={handleSoundscapeSelect}
+        onVolumeChange={handleVolumeChange}
+      />
 
       {!running ? (
         <div className="mt-6 flex flex-col items-center gap-2">

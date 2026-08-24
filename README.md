@@ -10,6 +10,7 @@ Web 端奇幻宠物养成应用。产品文档见上级目录 `../docs/`（PRD /
 - **宠物立绘**：20 只宠物均有幼年、成年、老年、仙人级四阶段，以及睁眼、闭眼、走路、疲倦、沉睡状态。`scripts/buildActionAssets.mjs` 负责统一透明背景、500×500 画布和主体视觉尺寸，输出到 `public/creatures/`。
 - **视觉规范**：色板/圆角/阴影取自 `../游戏网页设计构思-handoff/`（暖奶油底 + 星尘暖金强调色），布局与文案遵循 `../Image/UI稿_AI生成/_UI规格说明.md`。
 - **动画**：待机随机眨眼（3.5–7 秒随机间隔，闭眼停留 650ms）与偶发走路动作，帧间使用短交叉淡化；喂养时切喜悦帧；疲倦/沉睡态使用对应美术；星光粒子闪烁 + 宠物呼吸浮动，沉睡时停止（`prefers-reduced-motion` 时全部停用）。
+- **专注环境音**：专注页提供棕噪、雨夜、海潮三种程序化声景及独立音量控制，默认静音。声音通过 Web Audio API 在设备上实时合成，不下载外部曲目、不接第三方音乐 API，也没有音频版权或持续调用费用；结束专注或离开页面时自动停止。
 - **网站图标**：设计侧交付的蛋形 Logo（`../Image/logo/`）经 `scripts/generateIcons.mjs` 裁切/生成 favicon、apple-touch-icon、PWA manifest 图标（含 maskable 变体），输出到 `public/`。源图四周留白很多，脚本按小尺寸场景（favicon 等）裁紧、按需要安全边距的场景（maskable）保留原始留白，两种都不用手动再调。Logo 更新后重跑该脚本即可。
 
 **小游戏——斗兽棋**：CJ 自己做的独立 HTML5 小游戏（`../dou-shou-qi/`，支持人机对战 + 本地双人对战），经 `scripts/convertAnimalChessAssets.mjs` 转 WebP（13MB → 352KB，顺便去掉了代码里未引用的全身图美术）后嵌入 `public/games/dou-shou-qi/`，主界面加一个入口按钮，用 `<iframe>` 打开。赢一局给 10 ⭐（每日最多 2 次），输了不扣分；游戏结束时通过 `postMessage` 把结果报给外层 React 页面，由外层决定要不要发星尘——游戏本身不需要知道任何星尘逻辑。游戏原本文案全是中文硬编码，同一个转换脚本又给它接了一套独立的中英 i18n（跟 App 那套 react-i18next 各自独立，不共用同一份文案文件），`AnimalChessScreen.tsx` 用当前 App 语言拼 `?lang=en` / `?lang=zh-CN` 传给 iframe，两边语言联动。
@@ -34,7 +35,7 @@ VITE_SUPABASE_ANON_KEY=你的 Supabase publishable/anon key
 ```bash
 npm install
 npm run dev       # 本地开发，默认 http://localhost:5173
-npm run test      # 跑 Vitest（domain / storage / store / component 单测，123 个）
+npm run test      # 跑 Vitest（domain / storage / store / component 单测，124 个）
 npm run build     # 生产构建（tsc -b && vite build）
 npm run preview   # 预览生产构建
 ```
@@ -90,6 +91,7 @@ supabase/schema.sql        # 数据库结构（profiles 表 + RLS + role 保护�
 - **自定义任务模型**：一次性待办（不是每日重置的习惯打卡），每个任务只发一次星尘。
 - **蛋位数量**：先给 1 个（Free 档基础值），不引入没有解锁路径的「锁定第二蛋位」UI（订阅系统还没做）。
 - **专注计时**：倒计时本身不持久化（刷新=中断，不惩罚），但「今日已完成几次」持久化，避免刷新绕过每日上限。
+- **专注环境音**：不用 AI 音乐平台生成完整歌曲，也不存放大型音频文件；`audio/proceduralSoundscape.ts` 用 Web Audio API 实时产生棕噪、雨夜与海潮，内部循环做平滑收尾，切换/停止时做短淡化以避免爆音。该引擎可直接复用于未来的睡前安静模式。
 - **中文文案**：简体中文。
 - **斗兽棋奖励数值**：赢一局 10⭐、每日上限 2 次（20⭐/天）。这是 CJ 后加的需求，跟 PRD「星尘只能靠成长行为赚取」的原则有张力，数值刻意压低+设上限，详见上文「小游戏」小节的产品原则提醒。
 - **账号系统（CJ 2026-08-12 加，推翻 PRD「日记不出设备」原则）**：Supabase Auth（邮箱密码 + Google）+ Postgres。存档结构沿用现有「单一 JSON blob」模式——`profiles.game_state` 直接存整个 `AppState`，不拆表，改动面最小。未登录不能进游戏主流程。登录时的合并规则（`domain/cloudSync.ts` 的 `resolveLoginMerge`）：账号云端还没有存档（没做过起始三选一）→ 用本机的覆盖上去并立刻推送；账号云端已有进度 → 保留云端，本机不覆盖。**Admin 测试账号**：`profiles.role` 字段，只能在 Supabase SQL Editor 里手动设（`supabase/schema.sql` 底部有现成语句），前端/API 都改不了自己的 role（`prevent_role_self_update` 触发器挡住）——登录后跳过反思/任务/专注/斗兽棋全部每日上限，`SettingsScreen.tsx` 里还有一个「直接加星尘」的调试面板，仅 admin 可见。**重要**：`public.profiles` 表虽然有 RLS policy，但 SQL Editor 建表时不会自动带上 Postgres 的表级 GRANT（RLS 管「哪些行能看」，GRANT 管「这张表本身能不能被这个角色碰」，是两层不同的权限），`schema.sql` 已经补上 `grant select, insert, update on public.profiles to authenticated`，如果以后又出现「SQL Editor 里查都正常、前端却读不到」的情况，先怀疑这层。
