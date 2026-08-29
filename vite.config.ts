@@ -19,6 +19,9 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      // 不用插件默认注入的 registerSW.js——它只注册 SW，不会在发现新版本时刷新页面，
+      // 导致每次部署后用户第一次打开还是旧缓存。改由 src/lib/pwaUpdate.ts 手动注册。
+      injectRegister: null,
       base,
       workbox: {
         // 斗兽棋游戏用 <iframe src="games/dou-shou-qi/index.html"> 嵌入，iframe 加载也是一次
