@@ -8,10 +8,10 @@
     "levelLabel": "Lv.{{level}} · Bond",
     "feedButton": "Feed",
     "feedCost": "✦ {{cost}}",
-    "feedNotEnoughHint": "Not enough stardust — finish today's reflection first",
+    "feedNotEnoughHint": "Not enough stardust — finish something first",
     "dormantHint": "It's asleep — it's waiting for you to come back",
     "reflectionCta": "Daily reflection",
-    "reflectionHintNotDone": "Not written yet · +40 ⭐",
+    "reflectionHintNotDone": "Not written yet · +15 ⭐",
     "reflectionHintDone": "Done today · tap to edit",
     "focusButton": "Focus",
     "focusSessionsHint": "{{count}}/{{limit}} today",
@@ -44,9 +44,9 @@
     "questionImprovement": "One thing you'd like to improve tomorrow?",
     "answerPlaceholder": "A line or two is enough…",
     "moodLabel": "Today's mood (optional)",
-    "rewardHintIdle": "Complete for 40 ⭐",
+    "rewardHintIdle": "Earn 15 ⭐ when complete",
     "rewardHintPartial": "{{filled}} answered · earns {{stars}} ⭐",
-    "rewardHintFull": "All done · earns 40 ⭐",
+    "rewardHintFull": "All answered · earn 15 ⭐",
     "alreadySubmittedHint": "Already saved today — edits won't grant more stardust",
     "submitButton": "Save today",
     "updateButton": "Save changes",
@@ -68,26 +68,106 @@
     "5": "Great"
   },
   "creature": {
-    "mossbear": { "species": "Moss Bear", "scene": "Mossy tundra · Dusk", "defaultName": "Mossy" },
-    "spiritfox": { "species": "Spirit Fox", "scene": "Woodland · Dawn", "defaultName": "Wisp" },
-    "cloudsheep": { "species": "Cloud Sheep", "scene": "Cloud plains · Afternoon", "defaultName": "Cloudy" },
-    "mistdeer": { "species": "Mist Deer", "scene": "Misty forest · Morning", "defaultName": "Misty" },
-    "streamturtle": { "species": "Stream Turtle", "scene": "Creekside · Afternoon", "defaultName": "Brook" },
-    "fireflyrabbit": { "species": "Firefly Rabbit", "scene": "Firefly woods · Nightfall", "defaultName": "Glow" },
-    "dewdropcat": { "species": "Dewdrop Cat", "scene": "Dew garden · Morning", "defaultName": "Dewey" },
-    "honeysparrow": { "species": "Honey Sparrow", "scene": "Honey woods · Afternoon", "defaultName": "Honey" },
-    "jellyfrog": { "species": "Jelly Frog", "scene": "Rain pond · Evening", "defaultName": "Jelly" },
-    "cottonraccoon": { "species": "Cotton Raccoon", "scene": "Cotton cloud valley · Clear", "defaultName": "Cotton" },
-    "coralwhale": { "species": "Coral Whale", "scene": "Coral sea · Dawn", "defaultName": "Coral" },
-    "amberwolf": { "species": "Amber Wolf", "scene": "Amber woods · Dusk", "defaultName": "Amber" },
-    "crystalfoal": { "species": "Crystalwing Foal", "scene": "Crystalwing valley · Morning", "defaultName": "Crystal" },
-    "emberturtle": { "species": "Ember Tortoise Dragon", "scene": "Lava plain · Night", "defaultName": "Ember" },
-    "aurorafox": { "species": "Aurora Nine-Tailed Fox", "scene": "Aurora plain · Midnight", "defaultName": "Aurora" },
-    "stardustotter": { "species": "Stardust Otter", "scene": "Starlit riverbank · Night", "defaultName": "Stardust" },
-    "stardragon": { "species": "Star-Mist Dragon", "scene": "Starfield · Night", "defaultName": "Nova" },
-    "nightphoenix": { "species": "Eternal-Night Phoenix", "scene": "Night sky · Midnight", "defaultName": "Nocturne" },
-    "rainbowqilin": { "species": "Rainbow-Light Qilin", "scene": "Rainbow realm · Dawn", "defaultName": "Prism" },
-    "sharkmermaid": { "species": "Deep-Sea Ancient Shark", "scene": "Ocean abyss · Night", "defaultName": "Abyss" }
+    "mossbear": {
+      "species": "Moss Bear",
+      "scene": "Mossy tundra · Dusk",
+      "defaultName": "Mossy"
+    },
+    "spiritfox": {
+      "species": "Spirit Fox",
+      "scene": "Woodland · Dawn",
+      "defaultName": "Wisp"
+    },
+    "cloudsheep": {
+      "species": "Cloud Sheep",
+      "scene": "Cloud plains · Afternoon",
+      "defaultName": "Cloudy"
+    },
+    "mistdeer": {
+      "species": "Mist Deer",
+      "scene": "Misty forest · Morning",
+      "defaultName": "Misty"
+    },
+    "streamturtle": {
+      "species": "Stream Turtle",
+      "scene": "Creekside · Afternoon",
+      "defaultName": "Brook"
+    },
+    "fireflyrabbit": {
+      "species": "Firefly Rabbit",
+      "scene": "Firefly woods · Nightfall",
+      "defaultName": "Glow"
+    },
+    "dewdropcat": {
+      "species": "Dewdrop Cat",
+      "scene": "Dew garden · Morning",
+      "defaultName": "Dewey"
+    },
+    "honeysparrow": {
+      "species": "Honey Sparrow",
+      "scene": "Honey woods · Afternoon",
+      "defaultName": "Honey"
+    },
+    "jellyfrog": {
+      "species": "Jelly Frog",
+      "scene": "Rain pond · Evening",
+      "defaultName": "Jelly"
+    },
+    "cottonraccoon": {
+      "species": "Cotton Raccoon",
+      "scene": "Cotton cloud valley · Clear",
+      "defaultName": "Cotton"
+    },
+    "coralwhale": {
+      "species": "Coral Whale",
+      "scene": "Coral sea · Dawn",
+      "defaultName": "Coral"
+    },
+    "amberwolf": {
+      "species": "Amber Wolf",
+      "scene": "Amber woods · Dusk",
+      "defaultName": "Amber"
+    },
+    "crystalfoal": {
+      "species": "Crystalwing Foal",
+      "scene": "Crystalwing valley · Morning",
+      "defaultName": "Crystal"
+    },
+    "emberturtle": {
+      "species": "Ember Tortoise Dragon",
+      "scene": "Lava plain · Night",
+      "defaultName": "Ember"
+    },
+    "aurorafox": {
+      "species": "Aurora Nine-Tailed Fox",
+      "scene": "Aurora plain · Midnight",
+      "defaultName": "Aurora"
+    },
+    "stardustotter": {
+      "species": "Stardust Otter",
+      "scene": "Starlit riverbank · Night",
+      "defaultName": "Stardust"
+    },
+    "stardragon": {
+      "species": "Star-Mist Dragon",
+      "scene": "Starfield · Night",
+      "defaultName": "Nova"
+    },
+    "nightphoenix": {
+      "species": "Eternal-Night Phoenix",
+      "scene": "Night sky · Midnight",
+      "defaultName": "Nocturne"
+    },
+    "rainbowqilin": {
+      "species": "Rainbow-Light Qilin",
+      "scene": "Rainbow realm · Dawn",
+      "defaultName": "Prism"
+    },
+    "sharkmermaid": {
+      "species": "Deep-Sea Ancient Shark",
+      "scene": "Ocean abyss · Night",
+      "defaultName": "Abyss"
+    }
   },
   "login": {
     "signInSubtitle": "Sign in to continue your journey",
@@ -111,12 +191,10 @@
   "focus": {
     "startButton": "Start focus",
     "cancelButton": "End this session",
-    "idleHint": "Focus {{minutes}} minutes · +{{reward}} ⭐",
+    "idleHint": "Focus {{minutes}} min · +{{reward}} ⭐",
     "runningHint": "Focusing · {{name}} is with you",
-    "sessionsTodayHint": "{{count}}/{{limit}} completed today",
-    "dailyLimitReachedHint": "You've used up today's focus sessions",
     "completedTitle": "Focus session complete",
-    "completedHint": "Earned {{reward}} ⭐",
+    "completedHint": "{{minutes}} minutes done · earned {{reward}} ⭐",
     "backButton": "Back",
     "soundscapeLabel": "Ambient sound",
     "volumeLabel": "Volume",
@@ -125,17 +203,38 @@
       "brown": "Brown",
       "rain": "Rain",
       "ocean": "Ocean"
-    }
+    },
+    "minutesLabel": "{{minutes}} min",
+    "customLengthLabel": "Custom length ({{min}}–{{max}} min, 5-minute steps)",
+    "completedNoRewardHint": "{{minutes}} minutes done · focus stardust is maxed for today",
+    "todayStatsHint": "{{minutes}} min focused today · {{earned}}/{{cap}} ⭐ earned",
+    "capReachedHint": "Focus stardust is maxed for today — further sessions still count in your stats",
+    "linkedTo": "Linked: {{label}}",
+    "addLinkButton": "Link a to-do or habit (optional)",
+    "changeLinkButton": "Change link",
+    "linkNone": "No link"
   },
   "tasks": {
     "title": "My tasks",
     "backButton": "Back",
-    "rewardHint": "{{count}}/{{limit}} stardust-eligible today",
+    "rewardHint": "+{{reward}} ⭐ each · {{count}}/{{limit}} rewarded today",
     "dailyLimitReachedHint": "Today's stardust cap is reached — tasks still get checked off",
     "emptyHint": "No tasks yet — add one",
     "addPlaceholder": "Something you'd like to do",
     "addButton": "Add",
-    "deleteButton": "Delete"
+    "deleteButton": "Delete",
+    "sectionToday": "Today",
+    "sectionUpcoming": "Later",
+    "sectionCompleted": "Completed ({{count}})",
+    "dueDateLabel": "Due date",
+    "dueTodayPreset": "Today",
+    "dueNone": "None",
+    "reminderLabel": "Reminder",
+    "dueToday": "Due today",
+    "dueOn": "Due {{date}}",
+    "dueOverdue": "Overdue since {{date}}",
+    "editButton": "Edit",
+    "focusOnThis": "Focus on this"
   },
   "dex": {
     "title": "Collection",
@@ -170,7 +269,19 @@
     "resetButton": "Erase data & start over",
     "resetConfirmHint": "Are you sure? All reflections and pet progress will be permanently erased. Consider exporting a backup first",
     "resetConfirmButton": "Yes, erase everything",
-    "resetCancelButton": "Not now"
+    "resetCancelButton": "Not now",
+    "notificationsTitle": "Reminders",
+    "notificationsHint": "Daily reminders for habits and to-dos",
+    "notificationsGlobal": "Enable reminders",
+    "notificationsHabits": "Habit reminders",
+    "notificationsTodos": "To-do reminders",
+    "notificationsDenied": "Notifications are blocked — enable them in your browser settings",
+    "notificationsUnsupported": "This browser does not support notifications",
+    "notificationsWebLimitation": "On the web, reminders only fire while the page is open. Background reminders come with the Android app.",
+    "aiTitle": "AI data access",
+    "aiDefaultHint": "By default only to-do titles, habit completions and focus stats are sent",
+    "aiAllowReflection": "Let the AI read my reflection text",
+    "aiReflectionHint": "Off by default. Even when on, you still see exactly what gets sent before each request."
   },
   "animalChess": {
     "title": "Jungle Chess",
@@ -179,5 +290,86 @@
     "wonNoRewardHint": "You won! But today's reward is already used up",
     "todayHint": "Win a match for +{{reward}} ⭐ · {{count}}/{{limit}} today",
     "dailyLimitReachedHint": "Today's Jungle Chess reward is used up — come back tomorrow"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "back": "Back",
+    "gotIt": "Got it"
+  },
+  "tabs": {
+    "today": "Today",
+    "focus": "Focus",
+    "companion": "Companion",
+    "insights": "Insights"
+  },
+  "today": {
+    "title": "Today",
+    "summary": "{{count}} things done today",
+    "petResponseActive": "{{name}} noticed the {{count}} things you did today",
+    "petResponseIdle": "{{name}} is waiting for the first step of the day",
+    "habitsTitle": "Daily habits",
+    "habitsProgress": "{{done}}/{{total}} done · next +{{reward}} ⭐",
+    "habitsEmpty": "No daily habits yet — start with the easiest one",
+    "addHabitButton": "Add habit",
+    "manageLink": "Manage",
+    "todosTitle": "To-dos for today",
+    "todosReward": "+{{reward}} ⭐ each · {{count}}/{{limit}} rewarded today",
+    "todosEmpty": "Nothing due today",
+    "addTodoButton": "Add to-do",
+    "allTodosLink": "All",
+    "focusTitle": "Quick focus"
+  },
+  "habits": {
+    "title": "Daily habits",
+    "limitHint": "Up to {{max}} active habits",
+    "emptyHint": "No habits yet — start with the easiest one",
+    "titlePlaceholder": "e.g. Drink 8 glasses of water",
+    "reminderLabel": "Daily reminder",
+    "reminderOff": "No reminder",
+    "reminderCustomLabel": "Custom reminder time",
+    "weeklyCount": "{{count}} this week",
+    "doneToday": "Done today",
+    "pausedBadge": "Paused",
+    "addButton": "Add",
+    "saveButton": "Save",
+    "editButton": "Edit",
+    "pauseButton": "Pause",
+    "resumeButton": "Resume",
+    "deleteButton": "Delete",
+    "confirmDeleteButton": "Confirm delete",
+    "maxReachedHint": "Limit of {{max}} reached — pause one first"
+  },
+  "insights": {
+    "title": "Insights",
+    "thisWeekTitle": "This week",
+    "actionDays": "Days with action",
+    "focusMinutes": "Focus minutes",
+    "habitRate": "Habit rate",
+    "todosDone": "To-dos done",
+    "reflectionTitle": "Daily reflection"
+  },
+  "ai": {
+    "mockBadge": "Simulated suggestions — real AI not connected yet",
+    "willSendTitle": "What will be sent to the AI",
+    "willNotSendHint": "Never sent: reflection text, email, name or other identity data",
+    "confirmSendButton": "Confirm and generate",
+    "loading": "Generating suggestions…",
+    "retryButton": "Retry",
+    "planTodayButton": "Plan my day",
+    "planTodayNoWriteHint": "Ordering suggestion only — nothing is changed for you",
+    "breakdownButton": "Break it down",
+    "breakdownFirstButton": "Break down: {{title}}",
+    "breakdownSource": "Broken down from: {{title}}",
+    "acceptStepsButton": "Add these {{count}} steps",
+    "discardButton": "Discard",
+    "weeklyReviewButton": "Review this week",
+    "weeklySuggestionsTitle": "Next week",
+    "error": {
+      "network": "Cannot reach the service — check your connection and retry",
+      "quota": "No AI requests left today — try again tomorrow",
+      "invalid": "There is not enough here to make a suggestion",
+      "unavailable": "The AI is unavailable right now — try again later"
+    }
   }
 }

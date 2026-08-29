@@ -1,5 +1,15 @@
 import { create } from 'zustand'
-import type { AppState, MoodValue, ReflectionAnswers } from '@/types'
+import type {
+  AiConsentSettings,
+  AppState,
+  FocusLink,
+  HabitItem,
+  MoodValue,
+  NotificationSettings,
+  ReflectionAnswers,
+  ReminderTime,
+  TaskItem,
+} from '@/types'
 import {
   createDefaultState,
   exportStateAsJson,
@@ -19,7 +29,19 @@ import {
   createTask,
   removeTask as removeTaskDomain,
   uncompleteTask,
+  updateTask as updateTaskDomain,
+  type CreateTaskOptions,
 } from '@/domain/tasks'
+import {
+  canAddHabit,
+  completeHabit as completeHabitDomain,
+  createHabit,
+  isHabitCompletedOn,
+  isHabitTitleValid,
+  removeHabit as removeHabitDomain,
+  uncompleteHabit as uncompleteHabitDomain,
+  updateHabit as updateHabitDomain,
+} from '@/domain/habits'
 import { completeFocusSession as completeFocusSessionDomain } from '@/domain/focus'
 import {
   advanceEgg as advanceEggDomain,
@@ -59,10 +81,29 @@ interface GameStore {
   chooseStarter: (species: string, name: string) => void
   /** 图鉴里切换出战宠物：只能切到已拥有的生物，切到当前已经在出战的那只也算失败（无意义操作） */
   switchActivePet: (species: string) => boolean
-  addTask: (label: string) => void
+  addTask: (label: string, options?: CreateTaskOptions) => void
   removeTask: (id: string) => void
   toggleTask: (id: string) => void
-  completeFocusSession: () => boolean
+  updateTask: (
+    id: string,
+    patch: Partial<Pick<TaskItem, 'label' | 'dueDate' | 'reminderTime' | 'pinned'>>,
+  ) => void
+  /** 达到 HABIT_MAX_ACTIVE 或标题非法时返回 false，调用方负责提示 */
+  addHabit: (title: string, reminderTime?: ReminderTime) => boolean
+  updateHabit: (
+    id: string,
+    patch: Partial<Pick<HabitItem, 'title' | 'reminderTime' | 'active'>>,
+  ) => void
+  removeHabit: (id: string) => void
+  /** 勾选/取消勾选今天的 Habit；返回本次实发星尘（取消或重复勾选为 0） */
+  toggleHabit: (id: string) => number
+  /**
+   * 专注跑满后结算。minutes 是实际完整完成的分钟数，link 可选。
+   * 返回实发星尘——可能因每日上限而小于公式值，UI 要显示真实数字。
+   */
+  completeFocusSession: (minutes: number, link?: FocusLink | null) => number
+  setNotificationSettings: (patch: Partial<NotificationSettings>) => void
+  setAiConsent: (patch: Partial<AiConsentSettings>) => void
   /** 抽一颗蛋：抽的瞬间就定好蛋里的生物（未拥有池随机）；已有蛋或全部集齐时返回 false */
   drawEgg: () => boolean
   /** 返回刚孵化出的生物 slug（用于弹起名弹窗）；本次浇灌没有孵化出东西/星尘不够时返回 null */
@@ -78,7 +119,7 @@ interface GameStore {
   resetForTests: () => void
 }
 
-/** 三处赚星尘的入口共用：更新 lastGrowthAt，驱动宠物状态机恢复活跃（喂养/孵蛋不算成长行为） */
+/** 四处赚星尘的入口共用：更新 lastGrowthAt，驱动宠物状态机恢复活跃（喂养/孵蛋/小游戏不算成长行为） */
 function withGrowthTimestamp(state: AppState, didEarn: boolean): Pick<AppState, 'lastGrowthAt'> {
   return { lastGrowthAt: didEarn ? new Date().toISOString() : state.lastGrowthAt }
 }
@@ -256,14 +297,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
     return true
   },
 
-  addTask: (label) => {
+  addTask: (label, options) => {
     if (!label.trim()) {
       return
     }
     set((prev) => {
       const nextState: AppState = {
         ...prev.state,
-        tasks: [...prev.state.tasks, createTask(label)],
+        tasks: [...prev.state.tasks, createTask(label, options)],
+      }
+      saveState(nextState)
+      return { state: nextState }
+    })
+  },
+
+  updateTask: (id, patch) => {
+    set((prev) => {
+      const nextState: AppState = {
+        ...prev.state,
+        tasks: updateTaskDomain(prev.state.tasks, id, patch),
       }
       saveState(nextState)
       return { state: nextState }
@@ -306,27 +358,126 @@ export const useGameStore = create<GameStore>((set, get) => ({
     })
   },
 
-  completeFocusSession: () => {
+  addHabit: (title, reminderTime = null) => {
     const { state } = get()
-    const { sessions, stardustEarned } = completeFocusSessionDomain(
-      state.focusSessions,
-      getLocalDateKey(),
-      isAdminUser(),
-    )
-    if (stardustEarned === 0) {
+    if (!isHabitTitleValid(title) || !canAddHabit(state.habits)) {
       return false
     }
     set((prev) => {
       const nextState: AppState = {
         ...prev.state,
-        focusSessions: sessions,
-        stardust: { balance: earnStardust(prev.state.stardust.balance, stardustEarned) },
-        ...withGrowthTimestamp(prev.state, true),
+        habits: [...prev.state.habits, createHabit(title, reminderTime)],
       }
       saveState(nextState)
       return { state: nextState }
     })
     return true
+  },
+
+  updateHabit: (id, patch) => {
+    set((prev) => {
+      const nextState: AppState = {
+        ...prev.state,
+        habits: updateHabitDomain(prev.state.habits, id, patch),
+      }
+      saveState(nextState)
+      return { state: nextState }
+    })
+  },
+
+  removeHabit: (id) => {
+    set((prev) => {
+      const { habits, completions } = removeHabitDomain(
+        prev.state.habits,
+        prev.state.habitCompletions,
+        id,
+      )
+      const nextState: AppState = { ...prev.state, habits, habitCompletions: completions }
+      saveState(nextState)
+      return { state: nextState }
+    })
+  },
+
+  toggleHabit: (id) => {
+    const today = getLocalDateKey()
+    const { state } = get()
+
+    // 取消勾选：不回收星尘，也不算「倒退」；只是把今天这条标成撤销
+    if (isHabitCompletedOn(state.habitCompletions, id, today)) {
+      set((prev) => {
+        const nextState: AppState = {
+          ...prev.state,
+          habitCompletions: uncompleteHabitDomain(prev.state.habitCompletions, id, today),
+        }
+        saveState(nextState)
+        return { state: nextState }
+      })
+      return 0
+    }
+
+    const { completions, stardustEarned } = completeHabitDomain(
+      state.habitCompletions,
+      id,
+      today,
+      isAdminUser(),
+    )
+    set((prev) => {
+      const nextState: AppState = {
+        ...prev.state,
+        habitCompletions: completions,
+        stardust: { balance: earnStardust(prev.state.stardust.balance, stardustEarned) },
+        // 完成 Habit 本身就是成长行为，即使因为每日上限没拿到星尘也算
+        ...withGrowthTimestamp(prev.state, true),
+      }
+      saveState(nextState)
+      return { state: nextState }
+    })
+    return stardustEarned
+  },
+
+  completeFocusSession: (minutes, link = null) => {
+    const { state } = get()
+    const { sessions, stardustEarned } = completeFocusSessionDomain(
+      state.focusSessions,
+      minutes,
+      link,
+      getLocalDateKey(),
+      isAdminUser(),
+    )
+    set((prev) => {
+      const nextState: AppState = {
+        ...prev.state,
+        focusSessions: sessions,
+        stardust: { balance: earnStardust(prev.state.stardust.balance, stardustEarned) },
+        // 达到每日上限拿 0 星尘时，这段专注依然是成长行为——不该被当成「今天什么都没做」
+        ...withGrowthTimestamp(prev.state, true),
+      }
+      saveState(nextState)
+      return { state: nextState }
+    })
+    return stardustEarned
+  },
+
+  setNotificationSettings: (patch) => {
+    set((prev) => {
+      const nextState: AppState = {
+        ...prev.state,
+        notifications: { ...prev.state.notifications, ...patch },
+      }
+      saveState(nextState)
+      return { state: nextState }
+    })
+  },
+
+  setAiConsent: (patch) => {
+    set((prev) => {
+      const nextState: AppState = {
+        ...prev.state,
+        aiConsent: { ...prev.state.aiConsent, ...patch },
+      }
+      saveState(nextState)
+      return { state: nextState }
+    })
   },
 
   drawEgg: () => {

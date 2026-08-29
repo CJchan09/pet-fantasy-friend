@@ -8,10 +8,10 @@
     "levelLabel": "Lv.{{level}} · 亲密度",
     "feedButton": "喂养",
     "feedCost": "✦ {{cost}}",
-    "feedNotEnoughHint": "星尘不够，先完成今天的反思吧",
+    "feedNotEnoughHint": "星尘不够，先去完成今天的一件事吧",
     "dormantHint": "它睡着了，它在等你回来",
     "reflectionCta": "今日反思",
-    "reflectionHintNotDone": "今天还没写 · +40 ⭐",
+    "reflectionHintNotDone": "今天还没写 · +15 ⭐",
     "reflectionHintDone": "今天已写 · 点开可编辑",
     "focusButton": "专注",
     "focusSessionsHint": "今日 {{count}}/{{limit}} 次",
@@ -44,9 +44,9 @@
     "questionImprovement": "明天想改进的一件事是什么？",
     "answerPlaceholder": "写下一两句就好……",
     "moodLabel": "今天的心情（可跳过）",
-    "rewardHintIdle": "完成可获得 40 ⭐",
+    "rewardHintIdle": "完成可获得 15 ⭐",
     "rewardHintPartial": "已填 {{filled}} 题 · 可获得 {{stars}} ⭐",
-    "rewardHintFull": "全部填好 · 可获得 40 ⭐",
+    "rewardHintFull": "全部填好 · 可获得 15 ⭐",
     "alreadySubmittedHint": "今天已经记过，修改内容不会再发星尘",
     "submitButton": "记下今天",
     "updateButton": "保存修改",
@@ -68,26 +68,106 @@
     "5": "很好"
   },
   "creature": {
-    "mossbear": { "species": "苔藓熊", "scene": "苔原 · 黄昏", "defaultName": "苔苔" },
-    "spiritfox": { "species": "灵狐", "scene": "林间 · 晨光", "defaultName": "小灵" },
-    "cloudsheep": { "species": "云羊", "scene": "云原 · 午后", "defaultName": "云云" },
-    "mistdeer": { "species": "雾鹿", "scene": "雾林 · 清晨", "defaultName": "雾雾" },
-    "streamturtle": { "species": "溪龟", "scene": "溪畔 · 午后", "defaultName": "溪溪" },
-    "fireflyrabbit": { "species": "萤火兔", "scene": "萤林 · 入夜", "defaultName": "萤萤" },
-    "dewdropcat": { "species": "露珠猫", "scene": "露园 · 清晨", "defaultName": "露露" },
-    "honeysparrow": { "species": "蜜羽雀", "scene": "蜜林 · 午后", "defaultName": "蜜羽" },
-    "jellyfrog": { "species": "果冻蛙", "scene": "雨塘 · 傍晚", "defaultName": "冻冻" },
-    "cottonraccoon": { "species": "棉花狸", "scene": "棉云谷 · 晴", "defaultName": "棉棉" },
-    "coralwhale": { "species": "珊瑚幼鲸", "scene": "珊瑚海 · 晨光", "defaultName": "珊珊" },
-    "amberwolf": { "species": "琥珀狼", "scene": "琥珀林 · 黄昏", "defaultName": "琥珀" },
-    "crystalfoal": { "species": "晶蝶马驹", "scene": "晶蝶谷 · 清晨", "defaultName": "晶晶" },
-    "emberturtle": { "species": "熔烬龟龙", "scene": "熔岩原 · 夜", "defaultName": "烬烬" },
-    "aurorafox": { "species": "极光九尾狐", "scene": "极光原 · 深夜", "defaultName": "极光" },
-    "stardustotter": { "species": "星尘水獭", "scene": "星河岸 · 夜", "defaultName": "星尘" },
-    "stardragon": { "species": "星岚幻龙", "scene": "星空 · 夜", "defaultName": "星岚" },
-    "nightphoenix": { "species": "永夜凤凰", "scene": "永夜天穹 · 深夜", "defaultName": "永夜" },
-    "rainbowqilin": { "species": "虹光麒麟", "scene": "虹光境 · 晨曦", "defaultName": "虹光" },
-    "sharkmermaid": { "species": "深海古鲛", "scene": "深海渊 · 夜", "defaultName": "深蓝" }
+    "mossbear": {
+      "species": "苔藓熊",
+      "scene": "苔原 · 黄昏",
+      "defaultName": "苔苔"
+    },
+    "spiritfox": {
+      "species": "灵狐",
+      "scene": "林间 · 晨光",
+      "defaultName": "小灵"
+    },
+    "cloudsheep": {
+      "species": "云羊",
+      "scene": "云原 · 午后",
+      "defaultName": "云云"
+    },
+    "mistdeer": {
+      "species": "雾鹿",
+      "scene": "雾林 · 清晨",
+      "defaultName": "雾雾"
+    },
+    "streamturtle": {
+      "species": "溪龟",
+      "scene": "溪畔 · 午后",
+      "defaultName": "溪溪"
+    },
+    "fireflyrabbit": {
+      "species": "萤火兔",
+      "scene": "萤林 · 入夜",
+      "defaultName": "萤萤"
+    },
+    "dewdropcat": {
+      "species": "露珠猫",
+      "scene": "露园 · 清晨",
+      "defaultName": "露露"
+    },
+    "honeysparrow": {
+      "species": "蜜羽雀",
+      "scene": "蜜林 · 午后",
+      "defaultName": "蜜羽"
+    },
+    "jellyfrog": {
+      "species": "果冻蛙",
+      "scene": "雨塘 · 傍晚",
+      "defaultName": "冻冻"
+    },
+    "cottonraccoon": {
+      "species": "棉花狸",
+      "scene": "棉云谷 · 晴",
+      "defaultName": "棉棉"
+    },
+    "coralwhale": {
+      "species": "珊瑚幼鲸",
+      "scene": "珊瑚海 · 晨光",
+      "defaultName": "珊珊"
+    },
+    "amberwolf": {
+      "species": "琥珀狼",
+      "scene": "琥珀林 · 黄昏",
+      "defaultName": "琥珀"
+    },
+    "crystalfoal": {
+      "species": "晶蝶马驹",
+      "scene": "晶蝶谷 · 清晨",
+      "defaultName": "晶晶"
+    },
+    "emberturtle": {
+      "species": "熔烬龟龙",
+      "scene": "熔岩原 · 夜",
+      "defaultName": "烬烬"
+    },
+    "aurorafox": {
+      "species": "极光九尾狐",
+      "scene": "极光原 · 深夜",
+      "defaultName": "极光"
+    },
+    "stardustotter": {
+      "species": "星尘水獭",
+      "scene": "星河岸 · 夜",
+      "defaultName": "星尘"
+    },
+    "stardragon": {
+      "species": "星岚幻龙",
+      "scene": "星空 · 夜",
+      "defaultName": "星岚"
+    },
+    "nightphoenix": {
+      "species": "永夜凤凰",
+      "scene": "永夜天穹 · 深夜",
+      "defaultName": "永夜"
+    },
+    "rainbowqilin": {
+      "species": "虹光麒麟",
+      "scene": "虹光境 · 晨曦",
+      "defaultName": "虹光"
+    },
+    "sharkmermaid": {
+      "species": "深海古鲛",
+      "scene": "深海渊 · 夜",
+      "defaultName": "深蓝"
+    }
   },
   "login": {
     "signInSubtitle": "登录继续你的旅程",
@@ -113,10 +193,8 @@
     "cancelButton": "结束本次",
     "idleHint": "专注 {{minutes}} 分钟 · +{{reward}} ⭐",
     "runningHint": "专注中 · {{name}}在你身边",
-    "sessionsTodayHint": "今日已完成 {{count}}/{{limit}} 次",
-    "dailyLimitReachedHint": "今天的专注次数已经用完了",
     "completedTitle": "完成一次专注",
-    "completedHint": "获得 {{reward}} ⭐",
+    "completedHint": "完成 {{minutes}} 分钟 · 获得 {{reward}} ⭐",
     "backButton": "返回",
     "soundscapeLabel": "环境音",
     "volumeLabel": "音量",
@@ -125,17 +203,38 @@
       "brown": "棕噪",
       "rain": "雨夜",
       "ocean": "海潮"
-    }
+    },
+    "minutesLabel": "{{minutes}} 分钟",
+    "customLengthLabel": "自定义时长（{{min}}–{{max}} 分钟，每 5 分钟一档）",
+    "completedNoRewardHint": "完成 {{minutes}} 分钟 · 今天的专注星尘已经领满了",
+    "todayStatsHint": "今日已专注 {{minutes}} 分钟 · 已获得 {{earned}}/{{cap}} ⭐",
+    "capReachedHint": "今天的专注星尘已领满，继续专注仍会计入统计",
+    "linkedTo": "关联：{{label}}",
+    "addLinkButton": "关联一个待办或习惯（可选）",
+    "changeLinkButton": "更换关联",
+    "linkNone": "不关联"
   },
   "tasks": {
     "title": "我的任务",
     "backButton": "返回",
-    "rewardHint": "今日已发放 {{count}}/{{limit}} 项星尘",
+    "rewardHint": "每项 +{{reward}} ⭐ · 今日已发放 {{count}}/{{limit}} 项",
     "dailyLimitReachedHint": "今日星尘上限已达，完成任务仍会记录",
     "emptyHint": "还没有任务，添加一个吧",
     "addPlaceholder": "写一件想完成的事",
     "addButton": "添加",
-    "deleteButton": "删除"
+    "deleteButton": "删除",
+    "sectionToday": "今天",
+    "sectionUpcoming": "之后",
+    "sectionCompleted": "已完成（{{count}}）",
+    "dueDateLabel": "截止日期",
+    "dueTodayPreset": "今天",
+    "dueNone": "不设",
+    "reminderLabel": "提醒时间",
+    "dueToday": "今天到期",
+    "dueOn": "{{date}} 到期",
+    "dueOverdue": "{{date}} 已过期",
+    "editButton": "编辑",
+    "focusOnThis": "为这件事专注"
   },
   "dex": {
     "title": "图鉴",
@@ -170,7 +269,19 @@
     "resetButton": "清除数据重新开始",
     "resetConfirmHint": "确定吗？反思记录和宠物进度将全部清除，无法恢复。建议先导出一份存档备份",
     "resetConfirmButton": "确认清除",
-    "resetCancelButton": "先不要"
+    "resetCancelButton": "先不要",
+    "notificationsTitle": "提醒",
+    "notificationsHint": "习惯与待办的每日提醒",
+    "notificationsGlobal": "开启提醒",
+    "notificationsHabits": "习惯提醒",
+    "notificationsTodos": "待办提醒",
+    "notificationsDenied": "浏览器已拒绝通知权限，需要在浏览器设置里手动打开",
+    "notificationsUnsupported": "这个浏览器不支持通知",
+    "notificationsWebLimitation": "网页版的提醒只在页面开着时生效；后台提醒要等 Android App 版本",
+    "aiTitle": "AI 数据授权",
+    "aiDefaultHint": "默认只发送待办标题、习惯完成情况和专注统计",
+    "aiAllowReflection": "允许 AI 阅读我的反思正文",
+    "aiReflectionHint": "默认关闭。打开后，每次请求前仍然会先告诉你这次会发送什么"
   },
   "animalChess": {
     "title": "斗兽棋",
@@ -179,5 +290,86 @@
     "wonNoRewardHint": "赢了！不过今日的奖励已经领完啦",
     "todayHint": "赢一局 +{{reward}} ⭐ · 今日 {{count}}/{{limit}}",
     "dailyLimitReachedHint": "今日的斗兽棋奖励已经领完了，明天再来"
+  },
+  "common": {
+    "cancel": "取消",
+    "close": "关闭",
+    "back": "返回",
+    "gotIt": "知道了"
+  },
+  "tabs": {
+    "today": "今天",
+    "focus": "专注",
+    "companion": "伙伴",
+    "insights": "回顾"
+  },
+  "today": {
+    "title": "今天",
+    "summary": "今天已经完成 {{count}} 件事",
+    "petResponseActive": "{{name}}看见你今天做的 {{count}} 件事了",
+    "petResponseIdle": "{{name}}在等今天的第一件事",
+    "habitsTitle": "每日习惯",
+    "habitsProgress": "已完成 {{done}}/{{total}} · 下一个 +{{reward}} ⭐",
+    "habitsEmpty": "还没有每日习惯，先建一个最容易做到的",
+    "addHabitButton": "新增习惯",
+    "manageLink": "管理",
+    "todosTitle": "今日待办",
+    "todosReward": "每项 +{{reward}} ⭐ · 今日已发 {{count}}/{{limit}} 项",
+    "todosEmpty": "今天没有待办",
+    "addTodoButton": "新增待办",
+    "allTodosLink": "全部",
+    "focusTitle": "快速专注"
+  },
+  "habits": {
+    "title": "每日习惯",
+    "limitHint": "最多 {{max}} 个进行中的习惯",
+    "emptyHint": "还没有习惯，从一个最容易做到的开始",
+    "titlePlaceholder": "例如：喝够 8 杯水",
+    "reminderLabel": "每日提醒",
+    "reminderOff": "不提醒",
+    "reminderCustomLabel": "自定义提醒时间",
+    "weeklyCount": "本周 {{count}} 次",
+    "doneToday": "今天已完成",
+    "pausedBadge": "已停用",
+    "addButton": "新增",
+    "saveButton": "保存",
+    "editButton": "编辑",
+    "pauseButton": "停用",
+    "resumeButton": "恢复",
+    "deleteButton": "删除",
+    "confirmDeleteButton": "确认删除",
+    "maxReachedHint": "已达 {{max}} 个上限，先停用一个再新增"
+  },
+  "insights": {
+    "title": "回顾",
+    "thisWeekTitle": "这一周",
+    "actionDays": "有行动的天数",
+    "focusMinutes": "专注分钟",
+    "habitRate": "习惯完成率",
+    "todosDone": "完成的待办",
+    "reflectionTitle": "每日反思"
+  },
+  "ai": {
+    "mockBadge": "当前为模拟建议，尚未接入真实 AI",
+    "willSendTitle": "本次会发送给 AI 的内容",
+    "willNotSendHint": "不会发送：反思正文、邮箱、姓名等身份资料",
+    "confirmSendButton": "确认并生成建议",
+    "loading": "正在生成建议……",
+    "retryButton": "重试",
+    "planTodayButton": "安排今天",
+    "planTodayNoWriteHint": "这只是排序建议，不会改动你的待办",
+    "breakdownButton": "帮我拆小",
+    "breakdownFirstButton": "帮我拆小：{{title}}",
+    "breakdownSource": "拆分自：{{title}}",
+    "acceptStepsButton": "加入这 {{count}} 个步骤",
+    "discardButton": "不用了",
+    "weeklyReviewButton": "看看这一周",
+    "weeklySuggestionsTitle": "下周建议",
+    "error": {
+      "network": "连不上，检查网络后再试一次",
+      "quota": "今天的 AI 次数用完了，明天再来",
+      "invalid": "这次的内容没法生成建议",
+      "unavailable": "AI 暂时不可用，稍后再试"
+    }
   }
 }

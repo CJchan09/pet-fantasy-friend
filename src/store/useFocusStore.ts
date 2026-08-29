@@ -1,20 +1,33 @@
 import { useGameStore } from './useGameStore'
 import { useAuthStore } from './useAuthStore'
-import { canStartFocusSession, countFocusSessionsToday } from '@/domain/focus'
-import { FOCUS_DAILY_SESSION_LIMIT, FOCUS_REWARD_PER_SESSION } from '@/config/gameBalance'
+import {
+  countFocusSessionsToday,
+  focusMinutesToday,
+  focusStardustEarnedToday,
+  focusStardustRemainingToday,
+  previewFocusReward,
+} from '@/domain/focus'
+import { FOCUS_DAILY_CAP } from '@/config/gameBalance'
 
-/** 按域派生的选择器：专注计时的「今日次数」记账部分（倒计时本身在 useFocusTimerStore） */
+/** 按域派生的选择器：专注记账部分（倒计时本身在 useFocusTimerStore） */
 export function useFocusStore() {
   const focusSessions = useGameStore((s) => s.state.focusSessions)
   const completeFocusSession = useGameStore((s) => s.completeFocusSession)
   const isAdmin = useAuthStore((s) => s.role === 'admin')
 
   return {
+    focusSessions,
     sessionsToday: countFocusSessionsToday(focusSessions),
-    dailyLimit: FOCUS_DAILY_SESSION_LIMIT,
-    // admin 账号跳过每日上限，Start 按钮和文案都要跟着不显示「已达上限」
-    canStart: canStartFocusSession(focusSessions, undefined, isAdmin),
-    rewardPerSession: FOCUS_REWARD_PER_SESSION,
+    minutesToday: focusMinutesToday(focusSessions),
+    stardustEarnedToday: focusStardustEarnedToday(focusSessions),
+    stardustRemainingToday: focusStardustRemainingToday(focusSessions, undefined, isAdmin),
+    dailyCap: FOCUS_DAILY_CAP,
+    /**
+     * 每日上限只挡星尘，不挡「开始专注」——用户想继续专注是好事。
+     * UI 用这个算「这次跑完能拿多少」，达上限时会是 0，如实显示。
+     */
+    previewReward: (minutes: number) =>
+      previewFocusReward(focusSessions, minutes, undefined, isAdmin),
     completeFocusSession,
   }
 }

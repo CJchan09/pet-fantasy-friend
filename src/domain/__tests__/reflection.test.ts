@@ -6,6 +6,10 @@ import {
   isReflectionSubmittable,
 } from '../reflection'
 import type { ReflectionAnswers } from '@/types'
+import {
+  REFLECTION_FULL_REWARD,
+  REFLECTION_PARTIAL_REWARD_PER_QUESTION,
+} from '@/config/gameBalance'
 
 const full: ReflectionAnswers = {
   gratitude: '今天天气很好',
@@ -14,27 +18,27 @@ const full: ReflectionAnswers = {
 }
 
 describe('reflection 计分规则', () => {
-  it('三问全填给全额 40 星尘', () => {
-    expect(calculateReflectionReward(full)).toBe(40)
+  it('三问全填给全额 REFLECTION_FULL_REWARD 星尘', () => {
+    expect(calculateReflectionReward(full)).toBe(REFLECTION_FULL_REWARD)
   })
 
-  it('填 1 题给 12 星尘', () => {
+  it('填 1 题给 1 × 每题奖励', () => {
     const partial: ReflectionAnswers = {
       gratitude: '一件小事',
       learning: '',
       improvement: '',
     }
     expect(countFilledAnswers(partial)).toBe(1)
-    expect(calculateReflectionReward(partial)).toBe(12)
+    expect(calculateReflectionReward(partial)).toBe(REFLECTION_PARTIAL_REWARD_PER_QUESTION)
   })
 
-  it('填 2 题给 24 星尘', () => {
+  it('填 2 题给 2 × 每题奖励', () => {
     const partial: ReflectionAnswers = {
       gratitude: '一件小事',
       learning: '学到了一点东西',
       improvement: '',
     }
-    expect(calculateReflectionReward(partial)).toBe(24)
+    expect(calculateReflectionReward(partial)).toBe(REFLECTION_PARTIAL_REWARD_PER_QUESTION * 2)
   })
 
   it('全空不可提交', () => {

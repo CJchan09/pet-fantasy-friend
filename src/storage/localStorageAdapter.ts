@@ -1,4 +1,11 @@
-import { CURRENT_SCHEMA_VERSION, type AppState, type EggState, type OwnedCreatureRecord } from '@/types'
+import {
+  CURRENT_SCHEMA_VERSION,
+  type AppState,
+  type EggState,
+  type HabitCompletion,
+  type HabitItem,
+  type OwnedCreatureRecord,
+} from '@/types'
 import { CREATURES, DEFAULT_SPECIES } from '@/config/creatures'
 import { unownedSpecies } from '@/domain/incubation'
 import { calculateLevel } from '@/domain/pet'
@@ -34,7 +41,38 @@ function isSessionRecord(value: unknown): boolean {
   return (
     isRecord(value) &&
     isBoundedString(value.date, 16) &&
-    isBoundedString(value.completedAt, 64)
+    isBoundedString(value.completedAt, 64) &&
+    (value.plannedMinutes === undefined || isSafeNonNegativeInteger(value.plannedMinutes)) &&
+    (value.completedMinutes === undefined || isSafeNonNegativeInteger(value.completedMinutes)) &&
+    (value.stardustAwarded === undefined || isSafeNonNegativeInteger(value.stardustAwarded)) &&
+    (value.link === undefined ||
+      value.link === null ||
+      (isRecord(value.link) &&
+        (value.link.kind === 'todo' || value.link.kind === 'habit') &&
+        isBoundedString(value.link.id, 100) &&
+        isBoundedString(value.link.label)))
+  )
+}
+
+function isHabitItem(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isBoundedString(value.id, 100) &&
+    isBoundedString(value.title) &&
+    (value.reminderTime === null || isBoundedString(value.reminderTime, 5)) &&
+    typeof value.active === 'boolean' &&
+    isBoundedString(value.createdAt, 64)
+  )
+}
+
+function isHabitCompletion(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isBoundedString(value.habitId, 100) &&
+    isBoundedString(value.date, 16) &&
+    isSafeNonNegativeInteger(value.stardustAwarded) &&
+    isBoundedString(value.completedAt, 64) &&
+    (value.revoked === undefined || typeof value.revoked === 'boolean')
   )
 }
 
@@ -48,7 +86,14 @@ function isReflectionAnswers(value: unknown): boolean {
 }
 
 function hasValidStateShape(state: AppState): boolean {
-  const collections = [state.reflections, state.tasks, state.focusSessions, state.animalChessWins]
+  const collections = [
+    state.reflections,
+    state.tasks,
+    state.focusSessions,
+    state.animalChessWins,
+    state.habits,
+    state.habitCompletions,
+  ]
   if (collections.some((items) => !Array.isArray(items) || items.length > MAX_COLLECTION_ITEMS)) {
     return false
   }
@@ -66,7 +111,13 @@ function hasValidStateShape(state: AppState): boolean {
     !isOptionalDateString(state.lastGrowthAt) ||
     !isSafeNonNegativeInteger(state.reflectionCount) ||
     !isBoundedString(state.firstUsedAt, 64) ||
-    typeof state.hasExportedSave !== 'boolean'
+    typeof state.hasExportedSave !== 'boolean' ||
+    !isRecord(state.notifications) ||
+    typeof state.notifications.globalEnabled !== 'boolean' ||
+    typeof state.notifications.habitRemindersEnabled !== 'boolean' ||
+    typeof state.notifications.todoRemindersEnabled !== 'boolean' ||
+    !isRecord(state.aiConsent) ||
+    typeof state.aiConsent.allowReflectionText !== 'boolean'
   ) {
     return false
   }
@@ -105,10 +156,18 @@ function hasValidStateShape(state: AppState): boolean {
         typeof task.done === 'boolean' &&
         typeof task.rewarded === 'boolean' &&
         isBoundedString(task.createdAt, 64) &&
-        (task.rewardedDate === undefined || isBoundedString(task.rewardedDate, 16)),
+        (task.rewardedDate === undefined || isBoundedString(task.rewardedDate, 16)) &&
+        (task.dueDate === undefined || task.dueDate === null || isBoundedString(task.dueDate, 16)) &&
+        (task.reminderTime === undefined ||
+          task.reminderTime === null ||
+          isBoundedString(task.reminderTime, 5)) &&
+        (task.completedAt === undefined || isBoundedString(task.completedAt, 64)) &&
+        (task.pinned === undefined || typeof task.pinned === 'boolean'),
     ) ||
     !state.focusSessions.every(isSessionRecord) ||
-    !state.animalChessWins.every(isSessionRecord)
+    !state.animalChessWins.every(isSessionRecord) ||
+    !state.habits.every(isHabitItem) ||
+    !state.habitCompletions.every(isHabitCompletion)
   ) {
     return false
   }
@@ -161,6 +220,8 @@ export function createDefaultState(): AppState {
     hasChosenStarter: false,
     lastGrowthAt: null,
     tasks: [],
+    habits: [],
+    habitCompletions: [],
     focusSessions: [],
     egg: null,
     // 首次三选一之前不预先拥有任何生物；chooseStarter() 才会真正写入拥有关系
@@ -169,6 +230,14 @@ export function createDefaultState(): AppState {
     firstUsedAt: new Date().toISOString(),
     hasExportedSave: false,
     animalChessWins: [],
+    notifications: {
+      // 总开关默认开，但真正弹通知前还要用户授予浏览器权限——不会未经同意就推送
+      globalEnabled: true,
+      habitRemindersEnabled: true,
+      todoRemindersEnabled: true,
+    },
+    // 反思正文的 AI 授权默认**必须**是 false（方案文档 §9.2 红线）
+    aiConsent: { allowReflectionText: false },
   }
 }
 
@@ -181,6 +250,13 @@ export function createDefaultState(): AppState {
  * v3 -> v4：蛋从「按稀有度抽、孵化时才随机定生物」改为「抽蛋时就定生物」；
  *           旧格式的蛋（{rarity, progress}）迁移时就地抽一只未拥有的生物、保留已投入的进度，
  *           全部拥有时清空蛋位（旧逻辑下这种蛋孵出来也只是重复安慰奖）。
+ * v5 -> v6（2026-08-29 产品进化：Habit/Todo/专注成为核心）：
+ *           新增 habits / habitCompletions / notifications / aiConsent；旧存档一律回退默认值
+ *           （空 Habit 列表、通知开关开、AI 反思授权关）。
+ *           旧的 focusSessions 记录只有 {date, completedAt}，没有时长与实发星尘——
+ *           **刻意不回填**：回填新公式会让历史统计显示成用户从没拿过的数值。
+ *           读取时由 domain/focus.ts 的 sessionMinutes() 按旧固定值 25 分钟兜底。
+ *           已有的星尘余额、宠物、图鉴、反思记录原样保留，不做任何折算。
  * v4 -> v5：ownedCreatures 从 Record<string, boolean> 改为 Record<string, {nickname}>，
  *           配合孵化起名弹窗。旧格式（值是 true）迁移时用「当前陪伴宠物用 pet.name，其余用生物原名」
  *           当默认昵称，避免全部生物在图鉴里突然变回「？？？」。
@@ -247,10 +323,16 @@ function migrate(raw: unknown): AppState {
     pet: mergedPet,
     stardust: { ...defaults.stardust, ...state.stardust },
     tasks: state.tasks ?? defaults.tasks,
+    habits: (state.habits as HabitItem[] | undefined) ?? defaults.habits,
+    habitCompletions:
+      (state.habitCompletions as HabitCompletion[] | undefined) ?? defaults.habitCompletions,
     focusSessions: state.focusSessions ?? defaults.focusSessions,
     animalChessWins: state.animalChessWins ?? defaults.animalChessWins,
     egg,
     ownedCreatures,
+    notifications: { ...defaults.notifications, ...state.notifications },
+    // 展开顺序刻意让 defaults 在前：旧存档没有这个字段时落到 false（默认不授权）
+    aiConsent: { ...defaults.aiConsent, ...state.aiConsent },
     hasChosenStarter: isLegacyV1WithoutStarterFlag ? true : (state.hasChosenStarter ?? false),
   }
 }

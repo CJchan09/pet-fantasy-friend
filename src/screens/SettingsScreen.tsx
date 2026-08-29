@@ -1,9 +1,15 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { useGameStore } from '@/store/useGameStore'
 import { useAuthStore } from '@/store/useAuthStore'
+import { useNotificationStore } from '@/store/useNotificationStore'
 import { LanguageToggle } from '@/components/LanguageToggle'
+import {
+  notificationPermission,
+  requestNotificationPermission,
+  type NotificationPermissionState,
+} from '@/lib/notifications'
 
 interface SettingsScreenProps {
   onBack: () => void
@@ -31,6 +37,25 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
   const [importResult, setImportResult] = useState<'success' | 'error' | null>(null)
   const [confirmingReset, setConfirmingReset] = useState(false)
   const [adminAmount, setAdminAmount] = useState('100')
+  const { notifications, setNotificationSettings } = useNotificationStore()
+  const aiConsent = useGameStore((s) => s.state.aiConsent)
+  const setAiConsent = useGameStore((s) => s.setAiConsent)
+  const [permission, setPermission] = useState<NotificationPermissionState>('unsupported')
+
+  useEffect(() => {
+    setPermission(notificationPermission())
+  }, [])
+
+  /**
+   * 只在用户主动打开总开关时才向浏览器要权限。
+   * 被拒绝过（permission==='denied'）就不再问第二次——方案文档 §5.2「不反复弹窗」。
+   */
+  async function handleToggleGlobalNotifications(next: boolean) {
+    setNotificationSettings({ globalEnabled: next })
+    if (next) {
+      setPermission(await requestNotificationPermission())
+    }
+  }
 
   function handleAdminAddStardust() {
     const amount = Number(adminAmount)
@@ -163,6 +188,72 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
         {importResult === 'error' && (
           <p className="text-xs text-ink-500">{t('settings.importError')}</p>
         )}
+      </section>
+
+      {/* 提醒设置（方案文档 §5.2）：总开关 + 分类开关，权限被拒时说明清楚，不再骚扰 */}
+      <section className="mt-3 flex flex-col gap-3 rounded-[20px] bg-card p-4 shadow-soft">
+        <div>
+          <p className="text-sm font-medium text-ink-800">{t('settings.notificationsTitle')}</p>
+          <p className="mt-1 text-xs text-ink-400">{t('settings.notificationsHint')}</p>
+        </div>
+
+        <label className="flex items-center justify-between gap-3">
+          <span className="text-sm text-ink-700">{t('settings.notificationsGlobal')}</span>
+          <input
+            type="checkbox"
+            checked={notifications.globalEnabled}
+            onChange={(e) => void handleToggleGlobalNotifications(e.target.checked)}
+            className="h-5 w-5 accent-gold-500"
+          />
+        </label>
+
+        <label className="flex items-center justify-between gap-3">
+          <span className="text-sm text-ink-700">{t('settings.notificationsHabits')}</span>
+          <input
+            type="checkbox"
+            disabled={!notifications.globalEnabled}
+            checked={notifications.habitRemindersEnabled}
+            onChange={(e) => setNotificationSettings({ habitRemindersEnabled: e.target.checked })}
+            className="h-5 w-5 accent-gold-500 disabled:opacity-40"
+          />
+        </label>
+
+        <label className="flex items-center justify-between gap-3">
+          <span className="text-sm text-ink-700">{t('settings.notificationsTodos')}</span>
+          <input
+            type="checkbox"
+            disabled={!notifications.globalEnabled}
+            checked={notifications.todoRemindersEnabled}
+            onChange={(e) => setNotificationSettings({ todoRemindersEnabled: e.target.checked })}
+            className="h-5 w-5 accent-gold-500 disabled:opacity-40"
+          />
+        </label>
+
+        {permission === 'denied' && (
+          <p className="text-xs text-ink-500">{t('settings.notificationsDenied')}</p>
+        )}
+        {permission === 'unsupported' && (
+          <p className="text-xs text-ink-500">{t('settings.notificationsUnsupported')}</p>
+        )}
+        <p className="text-[11px] text-ink-400">{t('settings.notificationsWebLimitation')}</p>
+      </section>
+
+      {/* AI 数据授权（方案文档 §9.2）：反思正文默认不发送，必须用户主动打开 */}
+      <section className="mt-3 flex flex-col gap-3 rounded-[20px] bg-card p-4 shadow-soft">
+        <div>
+          <p className="text-sm font-medium text-ink-800">{t('settings.aiTitle')}</p>
+          <p className="mt-1 text-xs text-ink-400">{t('settings.aiDefaultHint')}</p>
+        </div>
+        <label className="flex items-center justify-between gap-3">
+          <span className="text-sm text-ink-700">{t('settings.aiAllowReflection')}</span>
+          <input
+            type="checkbox"
+            checked={aiConsent.allowReflectionText}
+            onChange={(e) => setAiConsent({ allowReflectionText: e.target.checked })}
+            className="h-5 w-5 accent-gold-500"
+          />
+        </label>
+        <p className="text-[11px] text-ink-400">{t('settings.aiReflectionHint')}</p>
       </section>
 
       <section className="mt-3 flex items-center justify-between rounded-[20px] bg-card p-4 shadow-soft">

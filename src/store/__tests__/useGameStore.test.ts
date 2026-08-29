@@ -5,8 +5,9 @@ import {
   ANIMAL_CHESS_WIN_REWARD,
   EGG_ADVANCE_CHUNK,
   FEED_STARDUST_COST,
-  FOCUS_DAILY_SESSION_LIMIT,
-  FOCUS_REWARD_PER_SESSION,
+  FOCUS_DAILY_CAP,
+  REFLECTION_FULL_REWARD,
+  REFLECTION_PARTIAL_REWARD_PER_QUESTION,
   TASK_FREE_DAILY_ITEM_LIMIT,
   TASK_REWARD_PER_ITEM,
 } from '@/config/gameBalance'
@@ -22,13 +23,13 @@ beforeEach(() => {
 })
 
 describe('useGameStore 反思提交', () => {
-  it('提交三问全填给 40 星尘', () => {
+  it('提交三问全填给全额反思奖励', () => {
     useGameStore.getState().submitReflection({
       gratitude: '感恩今天',
       learning: '学到东西',
       improvement: '明天改进',
     })
-    expect(useGameStore.getState().state.stardust.balance).toBe(40)
+    expect(useGameStore.getState().state.stardust.balance).toBe(REFLECTION_FULL_REWARD)
     expect(useGameStore.getState().hasSubmittedToday()).toBe(true)
   })
 
@@ -39,7 +40,7 @@ describe('useGameStore 反思提交', () => {
       learning: '',
       improvement: '',
     })
-    expect(useGameStore.getState().state.stardust.balance).toBe(12)
+    expect(useGameStore.getState().state.stardust.balance).toBe(REFLECTION_PARTIAL_REWARD_PER_QUESTION)
 
     useGameStore.getState().submitReflection({
       gratitude: '第一次-已编辑',
@@ -47,7 +48,7 @@ describe('useGameStore 反思提交', () => {
       improvement: '补充改进',
     })
     // 同一天再次提交：星尘不因为编辑而重新按新内容计算发放
-    expect(useGameStore.getState().state.stardust.balance).toBe(12)
+    expect(useGameStore.getState().state.stardust.balance).toBe(REFLECTION_PARTIAL_REWARD_PER_QUESTION)
     expect(useGameStore.getState().state.reflections).toHaveLength(1)
     expect(useGameStore.getState().state.reflections[0].answers.gratitude).toBe(
       '第一次-已编辑',
@@ -63,7 +64,7 @@ describe('useGameStore 反思提交', () => {
     const raw = localStorage.getItem('pet-fantasy-friend:save')
     expect(raw).toBeTruthy()
     const parsed = JSON.parse(raw as string)
-    expect(parsed.stardust.balance).toBe(40)
+    expect(parsed.stardust.balance).toBe(REFLECTION_FULL_REWARD)
   })
 })
 
@@ -144,21 +145,33 @@ describe('useGameStore 自定义任务', () => {
 })
 
 describe('useGameStore 专注计时记账', () => {
-  it('完成一次专注发放星尘', () => {
-    const success = useGameStore.getState().completeFocusSession()
-    expect(success).toBe(true)
-    expect(useGameStore.getState().state.stardust.balance).toBe(FOCUS_REWARD_PER_SESSION)
+  it('完成一次 25 分钟专注发放 floor(25/5)=5 星尘', () => {
+    const earned = useGameStore.getState().completeFocusSession(25)
+    expect(earned).toBe(5)
+    expect(useGameStore.getState().state.stardust.balance).toBe(5)
     expect(useGameStore.getState().state.focusSessions).toHaveLength(1)
   })
 
-  it('超过当日 4 次上限后不再发放星尘', () => {
-    for (let i = 0; i < FOCUS_DAILY_SESSION_LIMIT; i++) {
-      useGameStore.getState().completeFocusSession()
-    }
-    const beforeBalance = useGameStore.getState().state.stardust.balance
-    const success = useGameStore.getState().completeFocusSession()
-    expect(success).toBe(false)
-    expect(useGameStore.getState().state.stardust.balance).toBe(beforeBalance)
+  it('达到每日星尘上限后不再发放，但专注记录照样保留', () => {
+    // 180 分钟 = 36 星尘，正好打满 FOCUS_DAILY_CAP
+    useGameStore.getState().completeFocusSession(180)
+    expect(useGameStore.getState().state.stardust.balance).toBe(FOCUS_DAILY_CAP)
+
+    const earned = useGameStore.getState().completeFocusSession(25)
+    expect(earned).toBe(0)
+    expect(useGameStore.getState().state.stardust.balance).toBe(FOCUS_DAILY_CAP)
+    expect(useGameStore.getState().state.focusSessions).toHaveLength(2)
+  })
+
+  it('专注可以关联一个 Todo', () => {
+    useGameStore.getState().addTask('写提案')
+    const task = useGameStore.getState().state.tasks[0]
+    useGameStore.getState().completeFocusSession(25, {
+      kind: 'todo',
+      id: task.id,
+      label: task.label,
+    })
+    expect(useGameStore.getState().state.focusSessions[0].link?.label).toBe('写提案')
   })
 })
 
@@ -360,7 +373,7 @@ describe('useGameStore Admin 测试账号跳过每日上限', () => {
     useGameStore.getState().submitReflection({ gratitude: '第一次', learning: '', improvement: '' })
     useGameStore.getState().submitReflection({ gratitude: '第二次', learning: '', improvement: '' })
     const { state } = useGameStore.getState()
-    expect(state.stardust.balance).toBe(12 * 2) // 只填一题，每次都是 partial reward（12⭐/题）
+    expect(state.stardust.balance).toBe(REFLECTION_PARTIAL_REWARD_PER_QUESTION * 2) // 只填一题，每次都是 partial reward（12⭐/题）
     expect(state.reflections).toHaveLength(1)
     expect(state.reflections[0].answers.gratitude).toBe('第二次')
   })
@@ -381,13 +394,13 @@ describe('useGameStore Admin 测试账号跳过每日上限', () => {
 
   it('专注：超过每日上限后 admin 依然能领星尘', () => {
     useAuthStore.setState({ role: 'admin' })
-    for (let i = 0; i < FOCUS_DAILY_SESSION_LIMIT + 2; i++) {
+    // 先打满上限，再多跑两次，admin 每次都该照发
+    useGameStore.getState().completeFocusSession(180)
+    for (let i = 0; i < 2; i++) {
       const balanceBefore = useGameStore.getState().state.stardust.balance
-      const success = useGameStore.getState().completeFocusSession()
-      expect(success).toBe(true)
-      expect(useGameStore.getState().state.stardust.balance).toBe(
-        balanceBefore + FOCUS_REWARD_PER_SESSION,
-      )
+      const earned = useGameStore.getState().completeFocusSession(25)
+      expect(earned).toBe(5)
+      expect(useGameStore.getState().state.stardust.balance).toBe(balanceBefore + 5)
     }
   })
 
@@ -443,6 +456,6 @@ describe('useGameStore 导出/导入', () => {
 
     const ok = useGameStore.getState().importSave(json)
     expect(ok).toBe(true)
-    expect(useGameStore.getState().state.stardust.balance).toBe(40)
+    expect(useGameStore.getState().state.stardust.balance).toBe(REFLECTION_FULL_REWARD)
   })
 })

@@ -10,6 +10,7 @@ import {
 } from '../localStorageAdapter'
 import { CREATURES } from '@/config/creatures'
 import i18n from '@/i18n'
+import { CURRENT_SCHEMA_VERSION } from '@/types'
 
 beforeEach(() => {
   localStorage.clear()
@@ -18,7 +19,7 @@ beforeEach(() => {
 describe('localStorageAdapter', () => {
   it('没有存档时返回默认状态', () => {
     const state = loadState()
-    expect(state.schemaVersion).toBe(5)
+    expect(state.schemaVersion).toBe(CURRENT_SCHEMA_VERSION)
     expect(state.stardust.balance).toBe(0)
     expect(state.reflections).toEqual([])
     expect(state.hasChosenStarter).toBe(false)
@@ -39,7 +40,7 @@ describe('localStorageAdapter', () => {
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(legacyV1))
     const migrated = loadState()
-    expect(migrated.schemaVersion).toBe(5)
+    expect(migrated.schemaVersion).toBe(CURRENT_SCHEMA_VERSION)
     expect(migrated.hasChosenStarter).toBe(true)
     expect(migrated.stardust.balance).toBe(55)
     expect(migrated.pet.intimacy).toBe(30)
@@ -93,7 +94,7 @@ describe('localStorageAdapter', () => {
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(legacyV4))
     const migrated = loadState()
-    expect(migrated.schemaVersion).toBe(5)
+    expect(migrated.schemaVersion).toBe(CURRENT_SCHEMA_VERSION)
     // 当前陪伴的生物用 pet.name 当默认昵称，其余用生物原名，不会全部变回「？？？」
     expect(migrated.ownedCreatures.spiritfox).toEqual({ nickname: '阿灵' })
     expect(migrated.ownedCreatures.mossbear).toEqual({
